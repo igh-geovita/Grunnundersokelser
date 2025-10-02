@@ -15,8 +15,8 @@ logo_path = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
 
 st.title("Geovita – Konus & Enaks Report Generator")
 st.write("""
-Dette verktøyet genererer plott av sensitivitet, omrørt skjærstyrke, direkte skjærstyrke fra konus og enaks, samt bruddtøyning fra enaksforsøkene. 
-Det blir også laget en Excel-tabell med alle verdiene fra alle borhullene. Inputdataen er excelark fra laben med data fra enaks og konusforsøk (basert på NGI standard), og en exceltabell med kotehøyder for alle borhull
+Genererer plott av sensitivitet, omrørt skjærstyrke, direkte skjærstyrke fra konus og enaks, samt bruddtøyning fra enaksforsøkene. 
+Det lages og en oppsummerende Excel-tabell med verdier fra alle borhullene. Input er excelark fra laben med data fra enaks og konusforsøk (basert på NGI standard), og en exceltabell med kotehøyder for alle borhull.
 I fanen til venstre kan du skrive inn det som skal stå i tittelfeltet.
 """)
 
