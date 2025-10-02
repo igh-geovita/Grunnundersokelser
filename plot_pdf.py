@@ -253,7 +253,7 @@ def export_density_pdf(
     kontr      = title_info.get("kontr", "JOG")
     godkj      = title_info.get("godkj", "AGR")
     figur_nr   = title_info.get("figur_nr", "C5")
-
+    
     # Figure: A4 landscape (inches)
     fig_w, fig_h = 11.69, 8.27
     fig = plt.figure(figsize=(fig_w, fig_h))
@@ -453,6 +453,11 @@ def export_cu_enaks_konus_pdf(
     kontr      = title_info.get("kontr", "JOG")
     godkj      = title_info.get("godkj", "AGR")
     figur_nr   = title_info.get("figur_nr", "C4")
+
+    # Collect all boreholes across both series and assign colors
+    all_bhs = sorted({bh for bh, *_ in series_konus} | {bh for bh, *_ in series_enaks})
+    colors = plt.get_cmap('tab20').resampled(max(1, len(all_bhs))).colors
+    bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
     # Figure: A4 landscape (inches)
     fig_w, fig_h = 11.69, 8.27
