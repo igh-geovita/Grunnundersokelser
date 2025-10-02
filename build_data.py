@@ -1,3 +1,8 @@
+import os, math
+import numpy as np
+import pandas as pd
+from openpyxl import load_workbook
+
 def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
     """
     Returns dict of borehole data:
