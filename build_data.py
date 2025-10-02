@@ -154,6 +154,62 @@ def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
 
     return out
 
+def build_water_content_series(folder, sheet_name, ranges, terrain_lookup):
+    """
+    Returns dict of borehole data:
+    {
+      BH: {
+        "water content": [...],
+        "depths": [...],
+        "elevs": [...],
+        "Z": terrain_level
+      }
+    }
+    """
+
+    excel_extensions = (".xlsx", ".xls", ".xlsm")
+    wc_series = {}
+
+    for filename in os.listdir(folder):
+        if not filename.endswith(excel_extensions) or filename.startswith("~$"):
+            continue
+        bh = os.path.splitext(filename)[0]
+        Z = terrain_lookup.get(bh)
+        if Z is None:
+            print(f"⚠️ No terrain level for {bh}, skipping")
+            continue
+
+        path = os.path.join(folder, filename)
+        try:
+            wb = load_workbook(path, data_only=True)
+            if sheet_name not in wb.sheetnames:
+                print(f"⚠️ Sheet {sheet_name} not in {filename}, skipping")
+                continue
+            ws = wb[sheet_name]
+
+            wc_raw = [cell[0].value for cell in ws[ranges["water content"]]]
+            dep_raw = [cell[0].value for cell in ws[ranges["depth"]]]
+
+            depths, elevs, wc = [], [], []
+            for v,d in zip(wc_raw, dep_raw):
+                if d is None:
+                    continue
+                depths.append(d)
+                elevs.append(Z - d)
+                wc.append(float(v) if df is not None else None)
+                
+            wc_series[bh] = {
+                "water content": wc
+                "depths": depths,
+                "elevs": elevs,
+                "Z": Z,
+            }
+
+        except Exception as e:
+            print(f"❌ Error reading {filename}: {e}")
+
+    return wc_series
+
 def export_combined_table(konus_series, enaks_series, outfile_xlsx):
     """
     Export combined borehole data to Excel.
