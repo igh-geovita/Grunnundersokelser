@@ -189,7 +189,7 @@ def export_curfc_pdf(
             bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
             bbox_transform=fig.transFigure,
             ncol=4, frameon=True, fontsize=8,
-            columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6
+            columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: fig.savefig(outfile_png, dpi=300)
