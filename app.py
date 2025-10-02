@@ -9,7 +9,7 @@ from matplotlib import patches
 import itertools
 
 # Import your export function (copied from your script)
-from yourmodule import export_curfc_pdf   # or paste export_curfc_pdf here
+from plot_pdf import export_curfc_pdf   # or paste export_curfc_pdf here
 
 
 # -----------------------
