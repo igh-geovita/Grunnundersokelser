@@ -33,9 +33,9 @@ fig_cuc   = st.sidebar.text_input("Direkte skjærstyrke (konus/enaks)", "C4")
 fig_ef    = st.sidebar.text_input("Bruddtøyning enaks", "C5")
 
 # placeholder for future plots
-# fig_wc    = st.sidebar.text_input("Sensitivitetsplott", "C1")
-# fig_gamma = st.sidebar.text_input("Omrørt skjærstyrke (konus)", "C6")
-# fig_ip   = st.sidebar.text_input("Direkte skjærstyrke (konus/enaks)", "C7")
+fig_wc    = st.sidebar.text_input("Plott av vanninnhold", "C1")
+# fig_gamma = st.sidebar.text_input("Plott med tyngdetetthet", "C6")
+# fig_ip   = st.sidebar.text_input("Plastisitetsindeks", "C7")
 
 
 title_info_common = {
