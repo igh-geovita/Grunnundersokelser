@@ -140,8 +140,8 @@ def export_curfc_pdf(
     right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
 
     # Colour map per borehole (union of those series)
-    all_bhs = sorted({bh for bh, *_ in series_konus} | {bh for bh, *_ in series_enaks_strength})
-    colors = plt.get_cmap('tab20').resampled(max(1, len(all_bhs))).colors
+    all_bhs = sorted(set(konus_series.keys()) | set(enaks_series.keys()))
+    colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
     bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
     def setup_xaxis(ax):
@@ -261,8 +261,8 @@ def export_cu_enaks_konus_pdf(
     right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
 
     # Colour map per borehole (union of those series)
-    all_bhs = sorted({bh for bh, *_ in series_konus} | {bh for bh, *_ in series_enaks_strength})
-    colors = plt.get_cmap('tab20').resampled(max(1, len(all_bhs))).colors
+    all_bhs = sorted(set(konus_series.keys()) | set(enaks_series.keys()))
+    colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
     bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
     def setup_xaxis(ax):
@@ -404,8 +404,8 @@ def export_sensitivity_pdf(
     right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
 
     # Colour map per borehole (union of those series)
-    all_bhs = sorted({bh for bh, *_ in series_konus} | {bh for bh, *_ in series_enaks_strength})
-    colors = plt.get_cmap('tab20').resampled(max(1, len(all_bhs))).colors
+    all_bhs = sorted(set(konus_series.keys()) | set(enaks_series.keys()))
+    colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
     bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
     def setup_xaxis(ax):
@@ -520,8 +520,8 @@ def export_enaks_deformation_pdf(
     right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
 
     # Colour map per borehole (union of those series)
-    all_bhs = sorted({bh for bh, *_ in series_konus} | {bh for bh, *_ in series_enaks_strength})
-    colors = plt.get_cmap('tab20').resampled(max(1, len(all_bhs))).colors
+    all_bhs = sorted(set(konus_series.keys()) | set(enaks_series.keys()))
+    colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
     bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
     def setup_xaxis(ax):
