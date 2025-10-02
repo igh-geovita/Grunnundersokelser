@@ -18,23 +18,18 @@ LOGO_PATH = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
 st.title("Plot av udrenert skjærstyrke")
 
 # --- Inputs ---
-mode = st.radio(
-    "Velg rapporttype:",
-    ("Konus Omrørt (alene)", "Konus Uforstyrret + Enaks"),
-)
-
 konus_files = st.file_uploader(
     "Last opp Konus-filer (Excel)", type=["xlsx", "xls", "xlsm"], accept_multiple_files=True
 )
-enaks_files = None
-if mode == "Konus Uforstyrret + Enaks":
-    enaks_files = st.file_uploader(
-        "Last opp Enaks-filer (Excel)", type=["xlsx", "xls", "xlsm"], accept_multiple_files=True
-    )
+
+enaks_files = st.file_uploader(
+    "Last opp Enaks-filer (Excel)", type=["xlsx", "xls", "xlsm"], accept_multiple_files=True
+)
 
 terrain_file = st.file_uploader("Last opp terrengnivåer (Excel)", type=["xlsx"])
 
 sheet_name = st.text_input("Sheet-navn (kommaseparert hvis flere)", "Sheet 001")
+
 # Ranges (fixed by type)
 depth_range = "F6:F30"
 konus_omrort_range = "M6:M30"
@@ -83,7 +78,10 @@ def extract_series(files, sheet_names, x_range, y_range, terrain_lookup):
             if Z is None:
                 continue
             elevs = [Z - d for d in all_y]
-            series.append((str(borehole_name), all_x, all_y, elevs, Z))
+            # Sort by depth
+            sorted_pts = sorted(zip(all_x, all_y, elevs), key=lambda t: t[1])
+            xs, ys, elevs_sorted = zip(*sorted_pts)
+            series.append((str(borehole_name), xs, ys, elevs_sorted, Z))
         except Exception as e:
             st.error(f"Feil ved lesing av {file.name}: {e}")
         finally:
@@ -96,8 +94,6 @@ def extract_series(files, sheet_names, x_range, y_range, terrain_lookup):
 if st.button("Generer rapport"):
     if not konus_files or not terrain_file:
         st.error("Du må laste opp minst én Konus-fil og terrengnivåfil")
-    elif mode == "Konus Uforstyrret + Enaks" and not enaks_files:
-        st.error("Du må laste opp Enaks-filer for denne rapporttypen")
     else:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Terrain
@@ -114,56 +110,66 @@ if st.button("Generer rapport"):
 
             sheet_names = [s.strip() for s in sheet_name.split(",") if s.strip()]
 
-            if mode == "Konus Omrørt (alene)":
-                series_konus = extract_series(konus_files, sheet_names,
-                                              konus_omrort_range, depth_range, terrain_lookup)
+            # --- Konus Omrørt (alone) ---
+            series_konus_omrort = extract_series(konus_files, sheet_names,
+                                                 konus_omrort_range, depth_range, terrain_lookup)
 
-                output_pdf = os.path.join(tmpdir, "konus_omrort.pdf")
-                output_png = os.path.join(tmpdir, "konus_omrort.png")
+            output_pdf_omrort = os.path.join(tmpdir, "konus_omrort.pdf")
+            output_png_omrort = os.path.join(tmpdir, "konus_omrort.png")
 
-                export_curfc_pdf(
-                    series_konus,
-                    outfile_pdf=output_pdf,
-                    outfile_png=output_png,
-                    logo_path=LOGO_PATH,
-                    title_info={
-                        "rapport_nr": rapport_nr,
-                        "dato": str(dato),
-                        "tegn": tegn,
-                        "kontr": kontr,
-                        "godkj": godkj,
-                        "figur_nr": figur_nr,
-                    },
-                )
+            export_curfc_pdf(
+                series_konus_omrort,
+                outfile_pdf=output_pdf_omrort,
+                outfile_png=output_png_omrort,
+                logo_path=LOGO_PATH,
+                title_info={
+                    "rapport_nr": rapport_nr,
+                    "dato": str(dato),
+                    "tegn": tegn,
+                    "kontr": kontr,
+                    "godkj": godkj,
+                    "figur_nr": figur_nr,
+                },
+            )
 
-            else:  # Konus Uforstyrret + Enaks
-                series_konus = extract_series(konus_files, sheet_names,
-                                              konus_uforstyrret_range, depth_range, terrain_lookup)
+            # --- Konus Uforstyrret + Enaks ---
+            series_konus_uforstyrret = extract_series(konus_files, sheet_names,
+                                                      konus_uforstyrret_range, depth_range, terrain_lookup)
+            series_enaks = []
+            if enaks_files:
                 series_enaks = extract_series(enaks_files, sheet_names,
                                               enaks_range, depth_range, terrain_lookup)
 
-                output_pdf = os.path.join(tmpdir, "konus_uforstyrret_enaks.pdf")
-                output_png = os.path.join(tmpdir, "konus_uforstyrret_enaks.png")
+            output_pdf_uforstyrret = os.path.join(tmpdir, "konus_uforstyrret_enaks.pdf")
+            output_png_uforstyrret = os.path.join(tmpdir, "konus_uforstyrret_enaks.png")
 
-                export_cu_enaks_konus_pdf(
-                    series_konus,
-                    series_enaks,
-                    outfile_pdf=output_pdf,
-                    outfile_png=output_png,
-                    logo_path=LOGO_PATH,
-                    title_info={
-                        "rapport_nr": rapport_nr,
-                        "dato": str(dato),
-                        "tegn": tegn,
-                        "kontr": kontr,
-                        "godkj": godkj,
-                        "figur_nr": figur_nr,
-                    },
-                )
+            export_cu_enaks_konus_pdf(
+                series_konus_uforstyrret,
+                series_enaks,
+                outfile_pdf=output_pdf_uforstyrret,
+                outfile_png=output_png_uforstyrret,
+                logo_path=LOGO_PATH,
+                title_info={
+                    "rapport_nr": rapport_nr,
+                    "dato": str(dato),
+                    "tegn": tegn,
+                    "kontr": kontr,
+                    "godkj": godkj,
+                    "figur_nr": figur_nr,
+                },
+            )
 
-            # Show preview
-            st.image(output_png, caption="Forhåndsvisning", use_column_width=True)
-            with open(output_pdf, "rb") as f:
-                st.download_button("Last ned PDF", f, file_name=os.path.basename(output_pdf))
-            with open(output_png, "rb") as f:
-                st.download_button("Last ned PNG", f, file_name=os.path.basename(output_png))
+            # --- Show previews and download links ---
+            st.subheader("Konus Omrørt (alene)")
+            st.image(output_png_omrort, caption="Forhåndsvisning Konus Omrørt", use_column_width=True)
+            with open(output_pdf_omrort, "rb") as f:
+                st.download_button("Last ned PDF (Konus Omrørt)", f, file_name="konus_omrort.pdf")
+            with open(output_png_omrort, "rb") as f:
+                st.download_button("Last ned PNG (Konus Omrørt)", f, file_name="konus_omrort.png")
+
+            st.subheader("Konus Uforstyrret + Enaks")
+            st.image(output_png_uforstyrret, caption="Forhåndsvisning Konus Uforstyrret + Enaks", use_column_width=True)
+            with open(output_pdf_uforstyrret, "rb") as f:
+                st.download_button("Last ned PDF (Konus Uforstyrret + Enaks)", f, file_name="konus_uforstyrret_enaks.pdf")
+            with open(output_png_uforstyrret, "rb") as f:
+                st.download_button("Last ned PNG (Konus Uforstyrret + Enaks)", f, file_name="konus_uforstyrret_enaks.png")
