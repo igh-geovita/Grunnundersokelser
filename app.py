@@ -14,6 +14,10 @@ from build_data import build_konus_series, build_enaks_series, export_combined_t
 logo_path = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
 
 st.title("Geovita – Konus & Enaks Report Generator")
+st.write("""
+Dette verktøyet genererer rapporter med plott av sensitivitet, omrørt skjærstyrke, direkte skjærstyrke og bruddtøyning, 
+samt en samlet Excel-tabell med alle verdiene fra all inputdata. Inputdataen er excelark fra laben med data fra enaks og konusforsøk (basert på NGI standard), og en exceltabell med kotehøyder for alle borhull
+""")
 
 # Sidebar metadata
 st.sidebar.header("Report Metadata")
