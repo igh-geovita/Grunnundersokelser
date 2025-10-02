@@ -61,11 +61,11 @@ enaks_files = st.file_uploader("Upload Enaks Excel files",
                                accept_multiple_files=True,
                               help = "Rådata etter NGI-labens standard. 👉 "
          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_Enaks.xlsm)")
-# wc_files = st.file_uploader("Upload Water content Excel files", 
-#                                type=["xlsx","xlsm"], 
-#                                accept_multiple_files=True,
-#                               help = "Rådata etter NGI-labens standard. 👉 "
-#          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_water content.xlsm)")
+wc_files = st.file_uploader("Upload Water content Excel files", 
+                               type=["xlsx","xlsm"], 
+                               accept_multiple_files=True,
+                              help = "Rådata etter NGI-labens standard. 👉 "
+         "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_water content.xlsm)")
 # gamma_files = st.file_uploader("Upload unit weight Excel files", 
 #                                type=["xlsx","xlsm"], 
 #                                accept_multiple_files=True,
