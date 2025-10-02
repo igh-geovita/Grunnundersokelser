@@ -19,7 +19,7 @@ I fanen til venstre kan du skrive inn det som skal stå i tittelfeltet.
 """)
 
 # Sidebar metadata
-st.sidebar.header("Report Metadata")
+st.sidebar.header("Tittelfelt")
 rapport_nr = st.sidebar.text_input("Rapport Nr.", "SMS-20-A-11341")
 dato       = st.sidebar.date_input("Dato")
 tegn       = st.sidebar.text_input("Tegnet av", "IGH")
