@@ -105,7 +105,7 @@ def export_curfc_pdf(
 ):
     """Export C3 – Remoulded shear strength (cur vs depth & elevation)."""
     import matplotlib.pyplot as plt
-    from itertools import cycle
+    from plot_pdf import draw_page_frame_and_title_block, add_box_spines
 
     if title_info is None:
         title_info = {}
@@ -127,7 +127,6 @@ def export_curfc_pdf(
     inner_w      = inner_right - inner_left
     inner_h      = inner_top - inner_bottom
 
-    from plot_pdf import draw_page_frame_and_title_block, add_box_spines
     tb_left, tb_bottom, tb_width, tb_height = draw_page_frame_and_title_block(
         fig, inner_left, inner_bottom, inner_w, inner_h,
         rapport_nr, figur_nr, tegn, kontr, godkj, dato, logo_path
@@ -142,58 +141,73 @@ def export_curfc_pdf(
 
     def setup_xaxis(ax):
         ax.set_xscale('log')
-        ax.set_xticks([0.1,0.2,0.5,1,2,5,10,20,30])
+        ax.set_xticks([0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 30])
         ax.set_xticklabels(['0.1','0.2','0.5','1','2','5','10','20','30'])
         ax.xaxis.set_ticks_position('top')
         ax.xaxis.set_label_position('top')
         ax.grid(True, which='both', linewidth=0.5, alpha=0.4)
 
-    colors = ['b','g','r','c','m','y','k']
-    markers = ['o','x','s','^']
-    cmb = cycle([(c, m) for c in colors for m in markers])
-
-    style_map = {bh: next(cmb) for bh in konus_series}
-
-    # LEFT: depth vs remoulded
+    # --- LEFT: depth vs remoulded strength ---
     for bh, data in konus_series.items():
-        if not data["remould"]: continue
-        c, m = style_map[bh]
-        left_ax.scatter(data["remould"], data["depths"], label=f"{bh}, {data['Z']:.1f} m", color=c, marker=m, s=25)
+        if not data.get("remould"):
+            continue
+        color = bh_color.get(bh, "tab:red")
+        left_ax.scatter(data["remould"], data["depths"],
+                        color=color, marker='o', s=25,
+                        label=f"{bh}, {data['Z']:.1f} m")
+
     left_ax.set_xlabel("Omrørt skjærstyrke (kPa)")
     left_ax.set_ylabel("Dybde (m)")
     left_ax.set_ylim(*depth_ylim)
     left_ax.invert_yaxis()
     setup_xaxis(left_ax); add_box_spines(left_ax)
 
-    # RIGHT: elevation vs remoulded
+    # --- RIGHT: elevation vs remoulded strength ---
     for bh, data in konus_series.items():
-        if not data["remould"]: continue
-        c, m = style_map[bh]
-        right_ax.scatter(data["remould"], data["elevs"], color=c, marker=m, s=25)
+        if not data.get("remould"):
+            continue
+        color = bh_color.get(bh, "tab:red")
+        right_ax.scatter(data["remould"], data["elevs"],
+                         color=color, marker='o', s=25)
+
     right_ax.set_xlabel("Omrørt skjærstyrke (kPa)")
     right_ax.set_ylabel("kote (m)")
     right_ax.yaxis.tick_right(); right_ax.yaxis.set_label_position("right")
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
-    # Legend
+    # --- Legend ---
+    handles, labels = [], []
+    seen = set()
+    for bh, data in konus_series.items():
+        if not data.get("remould"):
+            continue
+        lab = f"{bh}, {data['Z']:.1f} m"
+        if lab in seen:
+            continue
+        seen.add(lab)
+        color = bh_color.get(bh, "tab:red")
+        handles.append(plt.Line2D([], [], linestyle='', marker='s',
+                                  markersize=8, color=color))
+        labels.append(lab)
+
     legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
     legend_h = tb_height * 0.60
     legend_x0 = inner_left + inner_w * 0.02
     legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
 
-    handles, labels = left_ax.get_legend_handles_labels()
     if handles:
-        fig.legend(
-            handles, labels,
-            loc='upper left',
-            bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
-            bbox_transform=fig.transFigure,
-            ncol=4, frameon=True, fontsize=8,
-            columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+        fig.legend(handles, labels,
+                   loc='upper left',
+                   bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
+                   bbox_transform=fig.transFigure,
+                   ncol=4, frameon=True, fontsize=8,
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
-    if outfile_png: fig.savefig(outfile_png, dpi=300)
+    if outfile_png:
+        fig.savefig(outfile_png, dpi=300)
     plt.close(fig)
+
 
 def export_cu_enaks_konus_pdf(
     konus_series,
@@ -207,7 +221,7 @@ def export_cu_enaks_konus_pdf(
 ):
     """Export C4 – Konus (undisturbed cu) + Enaks strength."""
     import matplotlib.pyplot as plt
-    from itertools import cycle
+    from plot_pdf import draw_page_frame_and_title_block, add_box_spines
 
     if title_info is None:
         title_info = {}
@@ -229,7 +243,6 @@ def export_cu_enaks_konus_pdf(
     inner_w      = inner_right - inner_left
     inner_h      = inner_top - inner_bottom
 
-    from plot_pdf import draw_page_frame_and_title_block, add_box_spines
     tb_left, tb_bottom, tb_width, tb_height = draw_page_frame_and_title_block(
         fig, inner_left, inner_bottom, inner_w, inner_h,
         rapport_nr, figur_nr, tegn, kontr, godkj, dato, logo_path
@@ -247,54 +260,81 @@ def export_cu_enaks_konus_pdf(
         ax.xaxis.set_label_position('top')
         ax.grid(True, which='major', linewidth=0.5, alpha=0.4)
 
-    colors = ['b','g','r','c','m','y','k']
-    markers = ['^','o','s','d']
-    cmb = cycle([(c, m) for c in colors for m in markers])
-
-    style_map = {bh: next(cmb) for bh in set(konus_series) | set(enaks_series)}
-
-    # LEFT: depth vs strength
+    # --- LEFT: depth vs strength ---
     for bh, data in konus_series.items():
-        if not data["undist"]: continue
-        c, m = style_map[bh]
-        left_ax.scatter(data["undist"], data["depths"], label=f"{bh}, {data['Z']:.1f} m", color=c, marker='^', s=25)
+        if not data.get("undist"):
+            continue
+        color = bh_color.get(bh, "tab:blue")
+        left_ax.scatter(data["undist"], data["depths"],
+                        color=color, marker='^', s=25,
+                        label=f"{bh}, {data['Z']:.1f} m")
+
     for bh, data in enaks_series.items():
-        if not data["strength"]: continue
-        c, m = style_map[bh]
-        left_ax.scatter(data["strength"], data["depths"], color=c, marker='o', s=25)
+        if not data.get("strength"):
+            continue
+        color = bh_color.get(bh, "tab:blue")
+        left_ax.scatter(data["strength"], data["depths"],
+                        color=color, marker='o', s=25)
+
     left_ax.set_xlabel("Direkte skjærstyrke (kPa)")
     left_ax.set_ylabel("Dybde (m)")
     left_ax.set_ylim(*depth_ylim)
     left_ax.invert_yaxis()
     setup_xaxis(left_ax); add_box_spines(left_ax)
 
-    # RIGHT: elevation vs strength
+    # --- RIGHT: elevation vs strength ---
     for bh, data in konus_series.items():
-        if not data["undist"]: continue
-        c, m = style_map[bh]
-        right_ax.scatter(data["undist"], data["elevs"], color=c, marker='^', s=25)
+        if not data.get("undist"):
+            continue
+        color = bh_color.get(bh, "tab:blue")
+        right_ax.scatter(data["undist"], data["elevs"],
+                         color=color, marker='^', s=25)
+
     for bh, data in enaks_series.items():
-        if not data["strength"]: continue
-        c, m = style_map[bh]
-        right_ax.scatter(data["strength"], data["elevs"], color=c, marker='o', s=25)
+        if not data.get("strength"):
+            continue
+        color = bh_color.get(bh, "tab:blue")
+        right_ax.scatter(data["strength"], data["elevs"],
+                         color=color, marker='o', s=25)
+
     right_ax.set_xlabel("Direkte skjærstyrke (kPa)")
     right_ax.set_ylabel("kote (m)")
     right_ax.yaxis.tick_right(); right_ax.yaxis.set_label_position("right")
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
-    # Legend
-    bh_to_Z = {}
-    for bh, *_ , Z in series_konus: bh_to_Z[bh] = Z
-    for bh, *_ , Z in series_enaks: bh_to_Z[bh] = Z
+    # --- Legend ---
     handles, labels = [], []
-    for bh in sorted(bh_to_Z.keys()):
-        handles.append(plt.Line2D([], [], linestyle='', marker='s', markersize=8, color=bh_color[bh]))
-        labels.append(f"{bh}, {bh_to_Z[bh]:.1f} m")
+    seen = set()
+
+    # Konus BHs
+    for bh, data in konus_series.items():
+        if not data.get("undist"):
+            continue
+        lab = f"{bh}, {data['Z']:.1f} m"
+        if lab in seen: continue
+        seen.add(lab)
+        color = bh_color.get(bh, "tab:blue")
+        handles.append(plt.Line2D([], [], linestyle='', marker='s',
+                                  markersize=8, color=color))
+        labels.append(lab)
+
+    # Enaks BHs
+    for bh, data in enaks_series.items():
+        if not data.get("strength"):
+            continue
+        lab = f"{bh}, {data['Z']:.1f} m"
+        if lab in seen: continue
+        seen.add(lab)
+        color = bh_color.get(bh, "tab:blue")
+        handles.append(plt.Line2D([], [], linestyle='', marker='s',
+                                  markersize=8, color=color))
+        labels.append(lab)
 
     legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
     legend_h = tb_height * 0.60
     legend_x0 = inner_left + inner_w * 0.02
     legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
+
     if handles:
         fig.legend(handles, labels, loc='upper left',
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
@@ -302,8 +342,10 @@ def export_cu_enaks_konus_pdf(
                    columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
-    if outfile_png: fig.savefig(outfile_png, dpi=300)
+    if outfile_png:
+        fig.savefig(outfile_png, dpi=300)
     plt.close(fig)
+
 
 def export_sensitivity_pdf(
     konus_series,
@@ -361,42 +403,49 @@ def export_sensitivity_pdf(
         ax.xaxis.set_label_position('top')
         ax.grid(True, which='both', linewidth=0.5, alpha=0.4)
 
-    # LEFT: Sensitivity vs Depth
+    # --- Plot data ---
     for bh, data in konus_series.items():
-        if not data.get("sensitivity"): continue
-        left_ax.scatter(data["sensitivity"], data["depths"],
-                        color='tab:blue', marker='D', s=25,
+        sens = [s for s in data.get("sensitivity", []) if s is not None]
+        deps = data.get("depths", [])
+        elevs = data.get("elevs", [])
+        if not sens or not deps:
+            continue
+
+        color = bh_color.get(bh, "tab:blue")
+
+        # LEFT: sensitivity vs depth
+        left_ax.scatter(sens, deps, color=color, marker='D', s=25,
                         label=f"{bh}, {data['Z']:.1f} m")
+
+        # RIGHT: sensitivity vs elevation
+        right_ax.scatter(sens, elevs, color=color, marker='D', s=25)
+
     left_ax.set_xlabel(x_label)
     left_ax.set_ylabel("Dybde (m)")
     left_ax.set_ylim(*depth_ylim); left_ax.invert_yaxis()
     left_ax.yaxis.tick_left(); left_ax.yaxis.set_label_position("left")
     setup_xaxis(left_ax); add_box_spines(left_ax)
 
-    # RIGHT: Sensitivity vs Elevation
-    for bh, data in konus_series.items():
-        if not data.get("sensitivity"): continue
-        right_ax.scatter(data["sensitivity"], data["elevs"],
-                         color='tab:blue', marker='D', s=25)
     right_ax.set_xlabel(x_label)
     right_ax.set_ylabel("kote (m)")
     right_ax.yaxis.tick_right(); right_ax.yaxis.set_label_position("right")
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
-    # Legend
+    # --- Legend ---
     handles, labels = [], []
-    seen = set()
-    for bh, *_ , Z in konus_series:
-        lab = f"{bh}, {Z:.1f} m"
-        if lab in seen: continue
-        seen.add(lab)
-        handles.append(plt.Line2D([], [], linestyle='', marker='s', markersize=8, color=bh_color.get(bh, 'k')))
-        labels.append(lab)
+    for bh, data in konus_series.items():
+        if not data.get("sensitivity"):
+            continue
+        color = bh_color.get(bh, "tab:blue")
+        handles.append(plt.Line2D([], [], linestyle='', marker='s',
+                                  markersize=8, color=color))
+        labels.append(f"{bh}, {data['Z']:.1f} m")
 
     legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
     legend_h = tb_height * 0.60
     legend_x0 = inner_left + inner_w * 0.02
     legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
+
     if handles:
         fig.legend(handles, labels, loc='upper left',
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
@@ -404,7 +453,8 @@ def export_sensitivity_pdf(
                    columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
-    if outfile_png: fig.savefig(outfile_png, dpi=300)
+    if outfile_png: 
+        fig.savefig(outfile_png, dpi=300)
     plt.close(fig)
     print(f"Saved: {outfile_pdf}" + (f"\nPreview: {outfile_png}" if outfile_png else "")) 
 
@@ -461,44 +511,47 @@ def export_enaks_deformation_pdf(
         ax.xaxis.set_label_position('top')
         ax.grid(True, which='major', linewidth=0.5, alpha=0.4)
 
-    # LEFT: ε_f (%) vs Depth
+    # --- Plot data ---
     for bh, data in enaks_series.items():
-        if not data.get("deform"): 
+        if not data.get("deform"):
             continue
+        color = bh_color.get(bh, "tab:orange")
+
+        # LEFT: ε_f vs depth
         left_ax.scatter(data["deform"], data["depths"],
-                        color="tab:orange", marker="o", s=25,
+                        color=color, marker="o", s=25,
                         label=f"{bh}, {data['Z']:.1f} m")
+
+        # RIGHT: ε_f vs elevation
+        right_ax.scatter(data["deform"], data["elevs"],
+                         color=color, marker="o", s=25)
+
     left_ax.set_xlabel(r"Deformasjon ved brudd $\epsilon_f$ (%)")
     left_ax.set_ylabel("Dybde (m)")
     left_ax.set_ylim(*depth_ylim); left_ax.invert_yaxis()
     left_ax.yaxis.tick_left(); left_ax.yaxis.set_label_position("left")
     setup_xaxis(left_ax); add_box_spines(left_ax)
 
-    # RIGHT: ε_f (%) vs Elevation
-    for bh, data in enaks_series.items():
-        if not data.get("deform"): 
-            continue
-        right_ax.scatter(data["deform"], data["elevs"],
-                         color="tab:orange", marker="o", s=25)
     right_ax.set_xlabel(r"Deformasjon ved brudd $\epsilon_f$ (%)")
     right_ax.set_ylabel("kote (m)")
     right_ax.yaxis.tick_right(); right_ax.yaxis.set_label_position("right")
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
-    # Legend
+    # --- Legend ---
     handles, labels = [], []
-    seen = set()
-    for bh, *_ , Z in enak_series:
-        lab = f"{bh}, {Z:.1f} m"
-        if lab in seen: continue
-        seen.add(lab)
-        handles.append(plt.Line2D([], [], linestyle='', marker='s', markersize=8, color=bh_color.get(bh, 'k')))
-        labels.append(lab)
+    for bh, data in enaks_series.items():
+        if not data.get("deform"):
+            continue
+        color = bh_color.get(bh, "tab:orange")
+        handles.append(plt.Line2D([], [], linestyle='', marker='s',
+                                  markersize=8, color=color))
+        labels.append(f"{bh}, {data['Z']:.1f} m")
 
     legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
     legend_h = tb_height * 0.60
     legend_x0 = inner_left + inner_w * 0.02
     legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
+
     if handles:
         fig.legend(handles, labels, loc='upper left',
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
@@ -510,6 +563,7 @@ def export_enaks_deformation_pdf(
         fig.savefig(outfile_png, dpi=300)
     plt.close(fig)
     print(f"Saved: {outfile_pdf}" + (f"\nPreview: {outfile_png}" if outfile_png else "")) 
+
 
 # --- helpers ---------------------------------------------------------------
 def _pick_range(ranges: dict, candidates, label: str) -> str:
