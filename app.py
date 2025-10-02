@@ -19,9 +19,13 @@ st.title("Geovita – Konus & Enaks Report Generator")
 st.sidebar.header("Report Metadata")
 rapport_nr = st.sidebar.text_input("Rapport Nr.", "SMS-20-A-11341")
 dato       = st.sidebar.date_input("Dato")
-tegn       = st.sidebar.text_input("Tegn", "IGH")
-kontr      = st.sidebar.text_input("Kontr", "JOG")
-godkj      = st.sidebar.text_input("Godkj", "AGR")
+tegn       = st.sidebar.text_input("Tegnet av", "IGH")
+kontr      = st.sidebar.text_input("Kontrollert av", "JOG")
+godkj      = st.sidebar.text_input("Godkjent av", "AGR")
+fig_st    =st.sidebar.text_input("figurnr sensitivitetsplott", "C2")
+fig_curfc    =st.sidebar.text_input("figurnr plott omrørt skjærstyrke (konus)", "C3")
+fig_cuc    =st.sidebar.text_input("figurnr plott direkte skjærstyrke (konus/enaks)", "C4")
+fig_ef    =st.sidebar.text_input("figurnr plott bruddtøyning enaks", "C5")
 
 title_info = {
     "rapport_nr": rapport_nr,
