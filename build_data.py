@@ -156,43 +156,37 @@ def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
 
 def export_combined_table(konus_series, enaks_series, outfile_xlsx):
     """
-    Exports one Excel sheet with:
-    Borhull | Dybde | Kote | Omrørt skjærstyrke | 
-    Uforstyrret skjærstyrke konus | Sensitivitet | Skjærstyrke enaks
+    Export combined borehole data to Excel.
+
+    Columns:
+      Borhull | Dybde | Kote | Omrørt skjærstyrke | Uforstyrret skjærstyrke konus |
+      Sensitivitet | Skjærstyrke enaks | Bruddtøyning
     """
+
     rows = []
+    all_bhs = set(konus_series.keys()) | set(enaks_series.keys())
 
-    # Konus
-    for bh, data in konus_series.items():
-        for d, e, cu, cur, s in zip(
-            data["depths"], data["elevs"], data["undist"], data["remould"], data["sensitivity"]
-        ):
-            rows.append({
+    for bh in sorted(all_bhs):
+        kdata = konus_series.get(bh, {})
+        edata = enaks_series.get(bh, {})
+
+        depths = kdata.get("depths", []) or edata.get("depths", [])
+        elevs  = kdata.get("elevs", []) or edata.get("elevs", [])
+
+        for i, d in enumerate(depths):
+            row = {
                 "Borhull": bh,
                 "Dybde": d,
-                "Kote": e,
-                "Omrørt skjærstyrke": cur,
-                "Uforstyrret skjærstyrke konus": cu,
-                "Sensitivitet": s,
-                "Skjærstyrke enaks": np.nan,
-            })
-
-    # Enaks
-    for bh, data in enaks_series.items():
-        for d, e, cu in zip(data["depths"], data["elevs"], data["strength"]):
-            rows.append({
-                "Borhull": bh,
-                "Dybde": d,
-                "Kote": e,
-                "Omrørt skjærstyrke": np.nan,
-                "Uforstyrret skjærstyrke konus": np.nan,
-                "Sensitivitet": np.nan,
-                "Skjærstyrke enaks": cu,
-            })
+                "Kote": elevs[i] if i < len(elevs) else None,
+                "Omrørt skjærstyrke": kdata.get("remould", [None]*len(depths))[i] if i < len(kdata.get("remould", [])) else None,
+                "Uforstyrret skjærstyrke konus": kdata.get("undist", [None]*len(depths))[i] if i < len(kdata.get("undist", [])) else None,
+                "Sensitivitet": kdata.get("sensitivity", [None]*len(depths))[i] if i < len(kdata.get("sensitivity", [])) else None,
+                "Skjærstyrke enaks": edata.get("strength", [None]*len(depths))[i] if i < len(edata.get("strength", [])) else None,
+                "Bruddtøyning": edata.get("deform", [None]*len(depths))[i] if i < len(edata.get("deform", [])) else None,
+            }
+            rows.append(row)
 
     df = pd.DataFrame(rows)
-    df.sort_values(by=["Borhull", "Dybde"], inplace=True)
     df.to_excel(outfile_xlsx, index=False)
-
-    print(f"✅ Exported combined table: {outfile_xlsx}")
-    return df
+    print(f"✅ Excel table exported: {outfile_xlsx}")
+    return outfile_xlsx
