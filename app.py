@@ -3,13 +3,12 @@ import tempfile
 import os
 import pandas as pd
 from plot_pdf import (
-    build_konus_sensitivity_series,
     export_sensitivity_pdf,
     export_curfc_pdf,
     export_cu_enaks_konus_pdf,
-    build_enaks_deformation_series,
     export_enaks_deformation_pdf,
-    read_series
+    build_konus_series,
+    build_enaks_series
 )
 
 # ✅ Always use repo logo
@@ -40,12 +39,13 @@ enaks_files = st.file_uploader("Upload Enaks Excel files", type=["xlsx","xlsm"],
 
 # Input ranges
 sheet_name = "Sheet 001"
-x_range_konus_undist  = 'L6:L30'
-x_range_konus_remould = 'M6:M30'
-y_range_depth         = 'F6:F30'
-x_range_enaks_strength = 'G6:G30'
-y_range_enaks_depth    = 'F6:F30'
-x_range_enaks_deform   = 'H6:H30'
+ranges = {
+    "konus_undist": 'L6:L30',
+    "konus_remould": 'M6:M30',
+    "depth": 'F6:F30',
+    "enaks_strength": 'G6:G30',
+    "enaks_deform": 'H6:H30',
+}
 
 if st.button("Generate Reports"):
     if not terrain_file or not konus_files or not enaks_files:
@@ -55,6 +55,9 @@ if st.button("Generate Reports"):
             # Save terrain
             terrain_path = os.path.join(tmpdir, "terrain.xlsx")
             with open(terrain_path, "wb") as f: f.write(terrain_file.getbuffer())
+            terrain_df = pd.read_excel(terrain_path, usecols="A:B")
+            terrain_df.columns = ["BH", "Z"]
+            terrain_lookup = dict(zip(terrain_df["BH"], terrain_df["Z"]))
 
             # Save Konus files
             konus_dir = os.path.join(tmpdir, "konus"); os.makedirs(konus_dir, exist_ok=True)
@@ -66,36 +69,48 @@ if st.button("Generate Reports"):
             for uf in enaks_files:
                 with open(os.path.join(enaks_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
 
-            # --- Run exports (call your functions from plot_pdf) ---
+            # --- Build unified series ---
+            konus_series = build_konus_series(konus_dir, sheet_name, ranges, terrain_lookup)
+            enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges, terrain_lookup)
+
+            # --- Generate figures with preview + download ---
 
             # C2 – Sensitivity
-            series_sens = build_konus_sensitivity_series(konus_dir, x_range_konus_undist, x_range_konus_remould, y_range_depth)
             out_c2_pdf = os.path.join(tmpdir, "C2_sensitivity.pdf")
-            export_sensitivity_pdf(series_sens, outfile_pdf=out_c2_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C2"})
+            out_c2_png = os.path.join(tmpdir, "C2_sensitivity.png")
+            export_sensitivity_pdf(konus_series, outfile_pdf=out_c2_pdf, outfile_png=out_c2_png,
+                                   logo_path=logo_path, title_info={**title_info,"figur_nr":"C2"})
+            st.subheader("C2 – Sensitivity")
+            st.image(out_c2_png, caption="Preview C2 – Sensitivity", use_column_width=True)
             with open(out_c2_pdf, "rb") as f:
-                st.download_button("Download C2 – Sensitivity", f, file_name="C2_sensitivity.pdf")
+                st.download_button("Download C2 – Sensitivity PDF", f, file_name="C2_sensitivity.pdf")
 
             # C3 – Remoulded shear strength
-            series_remould = []
-            read_series(konus_dir, x_range_konus_remould, y_range_depth, series_remould)
             out_c3_pdf = os.path.join(tmpdir, "C3_curfc.pdf")
-            export_curfc_pdf(series_remould, outfile_pdf=out_c3_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C3"})
+            out_c3_png = os.path.join(tmpdir, "C3_curfc.png")
+            export_curfc_pdf(konus_series, outfile_pdf=out_c3_pdf, outfile_png=out_c3_png,
+                             logo_path=logo_path, title_info={**title_info,"figur_nr":"C3"})
+            st.subheader("C3 – Remoulded Shear Strength")
+            st.image(out_c3_png, caption="Preview C3 – Remoulded", use_column_width=True)
             with open(out_c3_pdf, "rb") as f:
-                st.download_button("Download C3 – Remoulded Strength", f, file_name="C3_curfc.pdf")
+                st.download_button("Download C3 – Remoulded Strength PDF", f, file_name="C3_curfc.pdf")
 
             # C4 – Konus (undisturbed) + Enaks
-            series_konus = []
-            read_series(konus_dir, x_range_konus_undist, y_range_depth, series_konus)
-            series_enaks = []
-            read_series(enaks_dir, x_range_enaks_strength, y_range_enaks_depth, series_enaks)
             out_c4_pdf = os.path.join(tmpdir, "C4_cu_enaks_konus.pdf")
-            export_cu_enaks_konus_pdf(series_konus, series_enaks, outfile_pdf=out_c4_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C4"})
+            out_c4_png = os.path.join(tmpdir, "C4_cu_enaks_konus.png")
+            export_cu_enaks_konus_pdf(konus_series, enaks_series, outfile_pdf=out_c4_pdf, outfile_png=out_c4_png,
+                                      logo_path=logo_path, title_info={**title_info,"figur_nr":"C4"})
+            st.subheader("C4 – Konus + Enaks")
+            st.image(out_c4_png, caption="Preview C4 – Konus + Enaks", use_column_width=True)
             with open(out_c4_pdf, "rb") as f:
-                st.download_button("Download C4 – Konus + Enaks", f, file_name="C4_cu_enaks_konus.pdf")
+                st.download_button("Download C4 – Konus + Enaks PDF", f, file_name="C4_cu_enaks_konus.pdf")
 
             # C5 – Enaks deformation
-            series_deform = build_enaks_deformation_series(enaks_dir, x_range_enaks_deform, y_range_enaks_depth)
             out_c5_pdf = os.path.join(tmpdir, "C5_enaks_deformation.pdf")
-            export_enaks_deformation_pdf(series_deform, outfile_pdf=out_c5_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C5"})
+            out_c5_png = os.path.join(tmpdir, "C5_enaks_deformation.png")
+            export_enaks_deformation_pdf(enaks_series, outfile_pdf=out_c5_pdf, outfile_png=out_c5_png,
+                                         logo_path=logo_path, title_info={**title_info,"figur_nr":"C5"})
+            st.subheader("C5 – Enaks Deformation")
+            st.image(out_c5_png, caption="Preview C5 – Enaks Deformation", use_column_width=True)
             with open(out_c5_pdf, "rb") as f:
-                st.download_button("Download C5 – Enaks Deformation", f, file_name="C5_enaks_deformation.pdf")
+                st.download_button("Download C5 – Enaks Deformation PDF", f, file_name="C5_enaks_deformation.pdf")
