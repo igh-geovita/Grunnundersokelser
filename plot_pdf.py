@@ -584,3 +584,133 @@ def export_enaks_deformation_pdf(
         fig.savefig(outfile_png, dpi=300)
     plt.close(fig)
     print(f"Saved: {outfile_pdf}" + (f"\nPreview: {outfile_png}" if outfile_png else "")) 
+
+"""plot for vanninnhold"""
+def export_wc_pdf(
+    wc_series,
+    outfile_pdf,
+    outfile_png=None,
+    logo_path=None,
+    title_info=None,
+    xlim=(0, 100),
+    depth_ylim=(0, 35),
+    margin_cm=1.0
+):
+    """Export water content vs depth & elevation)."""
+    import matplotlib.pyplot as plt
+    from plot_pdf import draw_page_frame_and_title_block, add_box_spines
+
+    if title_info is None:
+        title_info = {}
+    rapport_nr = title_info.get("rapport_nr", "")
+    dato       = title_info.get("dato", "")
+    tegn       = title_info.get("tegn", "")
+    kontr      = title_info.get("kontr", "")
+    godkj      = title_info.get("godkj", "")
+    figur_nr   = title_info.get("figur_nr", "C1")
+
+    fig_w, fig_h = 11.69, 8.27
+    fig = plt.figure(figsize=(fig_w, fig_h))
+
+    margin_in = margin_cm / 2.54
+    inner_left   = margin_in / fig_w
+    inner_right  = 1.0 - margin_in / fig_w
+    inner_bottom = margin_in / fig_h
+    inner_top    = 1.0 - margin_in / fig_h
+    inner_w      = inner_right - inner_left
+    inner_h      = inner_top - inner_bottom
+
+    tb_left, tb_bottom, tb_width, tb_height = draw_page_frame_and_title_block(
+        fig, inner_left, inner_bottom, inner_w, inner_h,
+        rapport_nr, figur_nr, tegn, kontr, godkj, dato, logo_path
+    )
+
+    charts_bottom = (tb_bottom + tb_height) + (0.3/2.54)/fig_h
+    charts_top = inner_top - 0.07
+    charts_height = max(0.05, charts_top - charts_bottom)
+
+    left_ax = fig.add_axes([inner_left + inner_w*0.06, charts_bottom, inner_w*0.40, charts_height])
+    right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
+
+    # Colour map per borehole (union of those series)
+    all_bhs = sorted(set(wc_series.keys()))
+    colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
+    bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
+
+    # X formatting (linear, 0–100, major ticks = 10)
+    def setup_xaxis(ax):
+        ax.set_xlim(*xlim)
+        ax.xaxis.set_major_locator(MultipleLocator(10))
+        ax.xaxis.set_ticks_position('top')
+        ax.xaxis.set_label_position('top')
+        ax.grid(True, which='major', linewidth=0.5, alpha=0.4)
+    
+    # Colour+marker cycling (like your script)
+    colors  = ['b','g','r','c','m','y','k']
+    markers = ['o','x','s','^']
+    color_marker_combos = itertools.cycle([(c,m) for c in colors for m in markers])
+  
+    # --- LEFT: depth vs water content ---
+    for bh, data in wc_series.items():
+        if not data.get("water content"):
+            continue
+        c, m = next(color_marker_combos)
+        left_ax.scatter(data["water content"], data["depths"],
+                        color=c, marker=m, s=25,
+                        label=f"{bh}, {data['Z']:.1f} m")
+
+    left_ax.set_xlabel("Vanninnhold (%)")
+    left_ax.set_ylabel("Dybde (m)")
+    left_ax.set_ylim(*depth_ylim)
+    left_ax.invert_yaxis()
+    setup_xaxis(left_ax); add_box_spines(left_ax)
+
+    # Reset cycle so right plot matches colours/markers
+    color_marker_combos = itertools.cycle([(c,m) for c in colors for m in markers])
+  
+    # --- RIGHT: elevation vs water content ---
+    for bh, data in wc_series.items():
+        if not data.get("water content"):
+            continue
+        c, m = next(color_marker_combos)
+        left_ax.scatter(data["water content"], data["elevs"],
+                        color=c, marker=m, s=25,
+                        label=f"{bh}, {data['Z']:.1f} m")
+
+    right_ax.set_xlabel("Vanninnhold (%)")
+    right_ax.set_ylabel("kote (m)")
+    right_ax.yaxis.tick_right(); right_ax.yaxis.set_label_position("right")
+    setup_xaxis(right_ax); add_box_spines(right_ax)
+
+    # --- Legend ---
+    handles, labels = [], []
+    seen = set()
+    for bh, data in konus_series.items():
+        if not data.get("remould"):
+            continue
+        lab = f"{bh}, {data['Z']:.1f} m"
+        if lab in seen:
+            continue
+        seen.add(lab)
+        color = bh_color.get(bh, "tab:red")
+        handles.append(plt.Line2D([], [], linestyle='', marker='s',
+                                  markersize=8, color=color))
+        labels.append(lab)
+
+    legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
+    legend_h = tb_height * 0.60
+    legend_x0 = inner_left + inner_w * 0.02
+    legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
+
+    if handles:
+        fig.legend(handles, labels,
+                   loc='upper left',
+                   bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
+                   bbox_transform=fig.transFigure,
+                   ncol=4, frameon=True, fontsize=8,
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+
+    fig.savefig(outfile_pdf, format="pdf")
+    if outfile_png:
+        fig.savefig(outfile_png, dpi=300)
+    plt.close(fig)
