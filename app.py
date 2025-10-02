@@ -81,7 +81,9 @@ if st.button("Generate Reports"):
             #Export series to excel
             export_combined_table(konus_series, enaks_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
             st.subheader("Data Table")
-            pd.read_excel(os.path.join(tmpdir,"grunnunderøkselser.xlsx"))
+            df = pd.read_excel(os.path.join(tmpdir, "grunnundersokelser.xlsx"))
+            st.dataframe(df)
+
             # with open(os.path.join(tmpdir, "grunnundersokelser.xlsx"), "rb") as f:
             #     st.download_button("Download Excel", f, file_name="grunnundersokelser.xlsx")
 
