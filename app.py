@@ -46,12 +46,12 @@ terrain_file = st.file_uploader("Upload terrain level file",
 konus_files = st.file_uploader("Upload Konus Excel files", 
                                type=["xlsx","xlsm"], 
                                accept_multiple_files=True,
-                              help ="Konus files with undisturbed/remoulded shear strength. 👉 "
+                              help ="Rådata etter NGI-labens standard. 👉 "
          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_konus.xlsm)" )
 enaks_files = st.file_uploader("Upload Enaks Excel files", 
                                type=["xlsx","xlsm"], 
                                accept_multiple_files=True,
-                              help = "Enaks files with strength and deformation at break. 👉 "
+                              help = "Rådata etter NGI-labens standard. 👉 "
          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_Enaks.xlsm)")
 
 # Input ranges
