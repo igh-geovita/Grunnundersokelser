@@ -3,6 +3,17 @@ import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
 
+def _pick_range(ranges: dict, candidates, label: str) -> str:
+    """
+    Return the first non-empty entry from `ranges` matching any of the keys in `candidates`.
+    Raise a clear error if none are found.
+    """
+    for k in candidates:
+        v = ranges.get(k)
+        if isinstance(v, str) and v.strip():
+            return v
+    raise KeyError(f"Missing '{label}' in ranges (tried keys: {', '.join(candidates)})")
+
 def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
     """
     Returns dict of borehole data:
