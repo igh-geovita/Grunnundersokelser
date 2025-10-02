@@ -140,9 +140,9 @@ def export_curfc_pdf(
     right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
 
     # Colour map per borehole (union of those series)
-    #all_bhs = sorted(set(konus_series.keys()))
-    #colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
-    #bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
+    all_bhs = sorted(set(konus_series.keys()))
+    colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
+    bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
     def setup_xaxis(ax):
         ax.set_xscale('log')
@@ -600,85 +600,83 @@ def _pick_range(ranges: dict, candidates, label: str) -> str:
 # --- KONUS ---------------------------------------------------------------
 def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
     """
-    Build a dict per borehole with undisturbed (cu), remoulded (cur), and sensitivity S=cu/cur.
-
-    Expected keys in `ranges` (any alias works):
-      - undisturbed cu:  'konus_undist' | 'x_range_konus_undist' | 'undist'
-      - remoulded cur:   'konus_remould'| 'x_range_konus_remould'| 'remould'
-      - depth (m):       'konus_depth'  | 'y_range_depth'        | 'depth'
-    Returns:
-      {
-        "BH01": {
-          "Z": <terrain level>,
-          "depths": [..], "elevs": [..],
-          "undist": [.. or None ..],
-          "remould":[.. or None ..],
-          "sensitivity":[.. or None ..]
-        }, ...
+    Returns dict of borehole data:
+    {
+      BH: {
+        "undist": [...],
+        "remould": [...],
+        "sensitivity": [...],
+        "depths": [...],
+        "elevs": [...],
+        "Z": terrain_level
       }
+    }
     """
-    und_rng = _pick_range(ranges, ["konus_undist","x_range_konus_undist","undist"], "konus undisturbed range")
-    rem_rng = _pick_range(ranges, ["konus_remould","x_range_konus_remould","remould"], "konus remoulded range")
-    dep_rng = _pick_range(ranges, ["konus_depth","y_range_depth","depth"], "konus depth range")
+    from openpyxl import load_workbook
+    import os, math
 
-    excel_ext = (".xlsx", ".xls", ".xlsm")
-    out = {}
+    excel_extensions = (".xlsx", ".xls", ".xlsm")
+    konus_series = {}
 
-    for fname in os.listdir(folder):
-        if not fname.endswith(excel_ext) or fname.startswith("~$"):
+    for filename in os.listdir(folder):
+        if not filename.endswith(excel_extensions) or filename.startswith("~$"):
             continue
-        path = os.path.join(folder, fname)
-        bh = os.path.splitext(fname)[0]
+        bh = os.path.splitext(filename)[0]
         Z = terrain_lookup.get(bh)
         if Z is None:
-            print(f"⚠️ Terrain level not found for {bh}, skipping Konus.")
+            print(f"⚠️ No terrain level for {bh}, skipping")
             continue
 
+        path = os.path.join(folder, filename)
         try:
             wb = load_workbook(path, data_only=True)
             if sheet_name not in wb.sheetnames:
-                print(f"⚠️ Sheet '{sheet_name}' not in {fname}, skipping.")
+                print(f"⚠️ Sheet {sheet_name} not in {filename}, skipping")
                 continue
             ws = wb[sheet_name]
 
-            und_raw = [c[0].value for c in ws[und_rng]]
-            rem_raw = [c[0].value for c in ws[rem_rng]]
-            dep_raw = [c[0].value for c in ws[dep_rng]]
+            und = [cell[0].value for cell in ws[ranges["konus_undist"]]]
+            rem = [cell[0].value for cell in ws[ranges["konus_remould"]]]
+            dep = [cell[0].value for cell in ws[ranges["depth"]]]
 
-            depths, elevs, undist, remould, sens = [], [], [], [], []
-            for cu, cur, d in zip(und_raw, rem_raw, dep_raw):
-                if d is None:
+            undist, remould, sens, depths, elevs = [], [], [], [], []
+            for u, r, d in zip(und, rem, dep):
+                if d is None: 
                     continue
                 depths.append(d)
                 elevs.append(Z - d)
+                if u is not None:
+                    undist.append(u)
+                else:
+                    undist.append(None)
+                if r is not None:
+                    remould.append(r)
+                else:
+                    remould.append(None)
 
-                cu_val = float(cu) if cu is not None else None
-                cur_val = float(cur) if cur is not None else None
-                undist.append(cu_val)
-                remould.append(cur_val)
+                # sensitivity = cu / cur
+                if u is not None and r is not None and r != 0:
+                    s = float(u) / float(r)
+                    if math.isfinite(s) and s > 0:
+                        sens.append(s)
+                    else:
+                        sens.append(None)
+                else:
+                    sens.append(None)
 
-                s_val = None
-                if cu_val is not None and cur_val not in (None, 0):
-                    try:
-                        r = cu_val / cur_val
-                        if math.isfinite(r) and r > 0:
-                            s_val = r
-                    except Exception:
-                        pass
-                sens.append(s_val)
-
-            out[bh] = {
+            konus_series[bh] = {
+                "undist": [v for v in undist if v is not None],
+                "remould": [v for v in remould if v is not None],
+                "sensitivity": [v for v in sens if v is not None],
+                "depths": [d for d,v in zip(depths, sens) if v is not None],
+                "elevs": [e for e,v in zip(elevs, sens) if v is not None],
                 "Z": Z,
-                "depths": depths,
-                "elevs": elevs,
-                "undist": undist,
-                "remould": remould,
-                "sensitivity": sens,
             }
-        except Exception as e:
-            print(f"❌ Error reading {fname}: {e}")
 
-    return out
+        except Exception as e:
+            print(f"❌ Error reading {filename}: {e}")
+
+    return konus_series
 
 # --- ENAKS ---------------------------------------------------------------
 def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
