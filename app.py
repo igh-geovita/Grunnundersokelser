@@ -34,6 +34,11 @@ fig_curfc = st.sidebar.text_input("Omrørt skjærstyrke (konus)", "C3")
 fig_cuc   = st.sidebar.text_input("Direkte skjærstyrke (konus/enaks)", "C4")
 fig_ef    = st.sidebar.text_input("Bruddtøyning enaks", "C5")
 
+# placeholder for future plots
+# fig_wc    = st.sidebar.text_input("Sensitivitetsplott", "C1")
+# fig_gamma = st.sidebar.text_input("Omrørt skjærstyrke (konus)", "C6")
+# fig_ip   = st.sidebar.text_input("Direkte skjærstyrke (konus/enaks)", "C7")
+
 
 title_info_common = {
     "rapport_nr": rapport_nr,
@@ -58,6 +63,21 @@ enaks_files = st.file_uploader("Upload Enaks Excel files",
                                accept_multiple_files=True,
                               help = "Rådata etter NGI-labens standard. 👉 "
          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_Enaks.xlsm)")
+# wc_files = st.file_uploader("Upload Water content Excel files", 
+#                                type=["xlsx","xlsm"], 
+#                                accept_multiple_files=True,
+#                               help = "Rådata etter NGI-labens standard. 👉 "
+#          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_water content.xlsm)")
+# gamma_files = st.file_uploader("Upload unit weight Excel files", 
+#                                type=["xlsx","xlsm"], 
+#                                accept_multiple_files=True,
+#                               help = "Rådata etter NGI-labens standard. 👉 "
+#          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_unit weight.xlsm)")
+# ip_files = st.file_uploader("Upload atterberg limit Excel files", 
+#                                type=["xlsx","xlsm"], 
+#                                accept_multiple_files=True,
+#                               help = "Rådata etter NGI-labens standard. 👉 "
+#          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_atterberg.xlsm)")
 
 # Input ranges
 sheet_name = "Sheet 001"
