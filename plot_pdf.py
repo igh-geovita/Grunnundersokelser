@@ -110,11 +110,11 @@ def export_curfc_pdf(
 
     if title_info is None:
         title_info = {}
-    rapport_nr = title_info.get("rapport_nr", "XX")
-    dato       = title_info.get("dato", "2025-09-22")
-    tegn       = title_info.get("tegn", "IGH")
-    kontr      = title_info.get("kontr", "JOG")
-    godkj      = title_info.get("godkj", "AGR")
+    rapport_nr = title_info.get("rapport_nr", "")
+    dato       = title_info.get("dato", "")
+    tegn       = title_info.get("tegn", "")
+    kontr      = title_info.get("kontr", "")
+    godkj      = title_info.get("godkj", "")
     figur_nr   = title_info.get("figur_nr", "C3")
 
     fig_w, fig_h = 11.69, 8.27
