@@ -7,9 +7,9 @@ from plot_pdf import (
     export_curfc_pdf,
     export_cu_enaks_konus_pdf,
     export_enaks_deformation_pdf,
-    build_konus_series,
-    build_enaks_series
 )
+from build_data import build_konus_series,
+    build_enaks_series, export_combined_table
 
 # ✅ Always use repo logo
 logo_path = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
