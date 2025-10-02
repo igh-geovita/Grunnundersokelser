@@ -685,8 +685,8 @@ def export_wc_pdf(
     # --- Legend ---
     handles, labels = [], []
     seen = set()
-    for bh, data in konus_series.items():
-        if not data.get("remould"):
+    for bh, data in wc_series.items():
+        if not data.get("water content"):
             continue
         lab = f"{bh}, {data['Z']:.1f} m"
         if lab in seen:
