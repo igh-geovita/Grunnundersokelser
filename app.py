@@ -36,6 +36,23 @@ terrain_file = st.file_uploader("Upload terrain_levels.xlsx", type=["xlsx"])
 konus_files = st.file_uploader("Upload Konus Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 enaks_files = st.file_uploader("Upload Enaks Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 
+st.sidebar.header("Rapport metadata")
+
+rapport_nr = st.sidebar.text_input("Rapport Nr.", "SMS-20-A-11341")
+dato       = st.sidebar.date_input("Dato").strftime("%Y-%m-%d")
+tegn       = st.sidebar.text_input("Tegn", "IGH")
+kontr      = st.sidebar.text_input("Kontrollert av", "JOG")
+godkj      = st.sidebar.text_input("Godkjent av", "AGR")
+
+# Store in dict
+title_info = {
+    "rapport_nr": rapport_nr,
+    "dato": dato,
+    "tegn": tegn,
+    "kontr": kontr,
+    "godkj": godkj,
+}
+
 # Input ranges
 sheet_name = "Sheet 001"
 ranges = {
@@ -82,9 +99,13 @@ if st.button("Generate Reports"):
             # C2 – Sensitivity
             out_c2_pdf = os.path.join(tmpdir, "C2_sensitivity.pdf")
             out_c2_png = os.path.join(tmpdir, "C2_sensitivity.png")
-            export_sensitivity_pdf(konus_series, outfile_pdf=out_c2_pdf, outfile_png=out_c2_png,
-                                   logo_path=logo_path, title_info={**title_info,"figur_nr":"C2"})
-            st.subheader("C2 – Sensitivity")
+            export_sensitivity_pdf(
+                konus_series,
+                outfile_pdf=out_c2_pdf,
+                outfile_png=out_c2_png,
+                logo_path=logo_path,
+                title_info={**title_info, "figur_nr": "C2"},
+            )
             st.image(out_c2_png, caption="Preview C2 – Sensitivity", use_column_width=True)
             with open(out_c2_pdf, "rb") as f:
                 st.download_button("Download C2 – Sensitivity PDF", f, file_name="C2_sensitivity.pdf")
@@ -92,8 +113,13 @@ if st.button("Generate Reports"):
             # C3 – Remoulded shear strength
             out_c3_pdf = os.path.join(tmpdir, "C3_curfc.pdf")
             out_c3_png = os.path.join(tmpdir, "C3_curfc.png")
-            export_curfc_pdf(konus_series, outfile_pdf=out_c3_pdf, outfile_png=out_c3_png,
-                             logo_path=logo_path, title_info={**title_info,"figur_nr":"C3"})
+            export_curfc_pdf(
+                konus_series,
+                outfile_pdf=out_c3_pdf,
+                outfile_png=out_c3_png,
+                logo_path=logo_path,
+                title_info={**title_info, "figur_nr": "C3"},
+            )
             st.subheader("C3 – Remoulded Shear Strength")
             st.image(out_c3_png, caption="Preview C3 – Remoulded", use_column_width=True)
             with open(out_c3_pdf, "rb") as f:
@@ -102,8 +128,13 @@ if st.button("Generate Reports"):
             # C4 – Konus (undisturbed) + Enaks
             out_c4_pdf = os.path.join(tmpdir, "C4_cu_enaks_konus.pdf")
             out_c4_png = os.path.join(tmpdir, "C4_cu_enaks_konus.png")
-            export_cu_enaks_konus_pdf(konus_series, enaks_series, outfile_pdf=out_c4_pdf, outfile_png=out_c4_png,
-                                      logo_path=logo_path, title_info={**title_info,"figur_nr":"C4"})
+            export_cu_enaks_konus_pdf(konus_series, 
+                                      enaks_series, 
+                                      outfile_pdf=out_c4_pdf, 
+                                      outfile_png=out_c4_png,
+                                      logo_path=logo_path, 
+                                      title_info={**title_info,"figur_nr":"C4"}
+            )
             st.subheader("C4 – Konus + Enaks")
             st.image(out_c4_png, caption="Preview C4 – Konus + Enaks", use_column_width=True)
             with open(out_c4_pdf, "rb") as f:
@@ -112,8 +143,12 @@ if st.button("Generate Reports"):
             # C5 – Enaks deformation
             out_c5_pdf = os.path.join(tmpdir, "C5_enaks_deformation.pdf")
             out_c5_png = os.path.join(tmpdir, "C5_enaks_deformation.png")
-            export_enaks_deformation_pdf(enaks_series, outfile_pdf=out_c5_pdf, outfile_png=out_c5_png,
-                                         logo_path=logo_path, title_info={**title_info,"figur_nr":"C5"})
+            export_enaks_deformation_pdf(enaks_series, 
+                                         outfile_pdf=out_c5_pdf, 
+                                         outfile_png=out_c5_png,
+                                         logo_path=logo_path, 
+                                         title_info={**title_info,"figur_nr":"C5"}
+            )
             st.subheader("C5 – Enaks Deformation")
             st.image(out_c5_png, caption="Preview C5 – Enaks Deformation", use_column_width=True)
             with open(out_c5_pdf, "rb") as f:
