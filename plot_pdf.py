@@ -598,6 +598,8 @@ def _pick_range(ranges: dict, candidates, label: str) -> str:
     raise KeyError(f"Missing '{label}' in ranges (tried keys: {', '.join(candidates)})")
 
 # --- KONUS ---------------------------------------------------------------
+import numpy as np
+
 def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
     """
     Returns dict of borehole data:
@@ -635,41 +637,35 @@ def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
                 continue
             ws = wb[sheet_name]
 
-            und = [cell[0].value for cell in ws[ranges["konus_undist"]]]
-            rem = [cell[0].value for cell in ws[ranges["konus_remould"]]]
-            dep = [cell[0].value for cell in ws[ranges["depth"]]]
+            und_raw = [cell[0].value for cell in ws[ranges["konus_undist"]]]
+            rem_raw = [cell[0].value for cell in ws[ranges["konus_remould"]]]
+            dep_raw = [cell[0].value for cell in ws[ranges["depth"]]]
 
-            undist, remould, sens, depths, elevs = [], [], [], [], []
-            for u, r, d in zip(und, rem, dep):
-                if d is None: 
+            depths, elevs, undist, remould, sens = [], [], [], [], []
+            for u, r, d in zip(und_raw, rem_raw, dep_raw):
+                if d is None:
                     continue
                 depths.append(d)
                 elevs.append(Z - d)
-                if u is not None:
-                    undist.append(u)
-                else:
-                    undist.append(None)
-                if r is not None:
-                    remould.append(r)
-                else:
-                    remould.append(None)
 
-                # sensitivity = cu / cur
-                if u is not None and r is not None and r != 0:
-                    s = float(u) / float(r)
-                    if math.isfinite(s) and s > 0:
-                        sens.append(s)
-                    else:
-                        sens.append(None)
+                cu_val = float(u) if u is not None else np.nan
+                cur_val = float(r) if r is not None else np.nan
+
+                undist.append(cu_val if np.isfinite(cu_val) else np.nan)
+                remould.append(cur_val if np.isfinite(cur_val) else np.nan)
+
+                if np.isfinite(cu_val) and np.isfinite(cur_val) and cur_val != 0:
+                    s_val = cu_val / cur_val
+                    sens.append(s_val if s_val > 0 else np.nan)
                 else:
-                    sens.append(None)
+                    sens.append(np.nan)
 
             konus_series[bh] = {
-                "undist": [v for v in undist if v is not None],
-                "remould": [v for v in remould if v is not None],
-                "sensitivity": [v for v in sens if v is not None],
-                "depths": [d for d,v in zip(depths, sens) if v is not None],
-                "elevs": [e for e,v in zip(elevs, sens) if v is not None],
+                "undist": undist,
+                "remould": remould,
+                "sensitivity": sens,
+                "depths": depths,
+                "elevs": elevs,
                 "Z": Z,
             }
 
@@ -677,6 +673,7 @@ def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
             print(f"❌ Error reading {filename}: {e}")
 
     return konus_series
+
 # --- ENAKS ---------------------------------------------------------------
 def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
     """
