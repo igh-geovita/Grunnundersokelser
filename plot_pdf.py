@@ -458,3 +458,152 @@ def export_enaks_deformation_pdf(
     plt.close(fig)
     print(f"Saved: {outfile_pdf}" + (f"\nPreview: {outfile_png}" if outfile_png else "")) 
 
+def build_konus_series(folder, sheet_name, x_range_undist, x_range_remould, y_range_depth, terrain_lookup):
+    """
+    Returns:
+      {
+        "BH01": {
+            "Z": terrain_level,
+            "undist": [...],
+            "remould": [...],
+            "sensitivity": [...],
+            "depths": [...],
+            "elevs": [...]
+        },
+        ...
+      }
+    """
+    from openpyxl import load_workbook
+    import math
+
+    konus_series = {}
+    excel_extensions = (".xlsx", ".xls", ".xlsm")
+
+    for filename in os.listdir(folder):
+        if not filename.endswith(excel_extensions) or filename.startswith("~$"):
+            continue
+
+        path = os.path.join(folder, filename)
+        bh = os.path.splitext(filename)[0]
+        Z = terrain_lookup.get(bh)
+        if Z is None:
+            print(f"⚠️ Terrain level not found for {bh}, skipping Konus.")
+            continue
+
+        try:
+            wb = load_workbook(path, data_only=True)
+            if sheet_name not in wb.sheetnames:
+                print(f"⚠️ Sheet '{sheet_name}' not in {filename}, skipping.")
+                continue
+            ws = wb[sheet_name]
+
+            undist = [c[0].value for c in ws[x_range_undist]]
+            remould = [c[0].value for c in ws[x_range_remould]]
+            depths = [c[0].value for c in ws[y_range_depth]]
+
+            undist_vals, remould_vals, sens_vals, dep_vals, elev_vals = [], [], [], [], []
+            for cu, cur, d in zip(undist, remould, depths):
+                if d is None: 
+                    continue
+                if cu is not None: 
+                    cu = float(cu)
+                if cur is not None: 
+                    cur = float(cur)
+                # save undist and remould if present
+                if cu is not None:
+                    undist_vals.append(cu)
+                else:
+                    undist_vals.append(None)
+                if cur is not None:
+                    remould_vals.append(cur)
+                else:
+                    remould_vals.append(None)
+                dep_vals.append(d)
+                elev_vals.append(Z - d)
+                # compute sensitivity if valid
+                if cu and cur and cur > 0:
+                    s = cu / cur
+                    if math.isfinite(s) and s > 0:
+                        sens_vals.append(s)
+                    else:
+                        sens_vals.append(None)
+                else:
+                    sens_vals.append(None)
+
+            konus_series[bh] = {
+                "Z": Z,
+                "undist": [x for x in undist_vals if x is not None],
+                "remould": [x for x in remould_vals if x is not None],
+                "sensitivity": [x for x in sens_vals if x is not None],
+                "depths": [d for d in dep_vals if d is not None],
+                "elevs": [e for e in elev_vals if e is not None],
+            }
+        except Exception as e:
+            print(f"❌ Error reading {filename}: {e}")
+
+    return konus_series
+
+def build_enaks_series(folder, sheet_name, x_range_strength, x_range_deform, y_range_depth, terrain_lookup):
+    """
+    Returns:
+      {
+        "BH01": {
+            "Z": terrain_level,
+            "strength": [...],
+            "deform": [...],
+            "depths": [...],
+            "elevs": [...]
+        },
+        ...
+      }
+    """
+    from openpyxl import load_workbook
+
+    enaks_series = {}
+    excel_extensions = (".xlsx", ".xls", ".xlsm")
+
+    for filename in os.listdir(folder):
+        if not filename.endswith(excel_extensions) or filename.startswith("~$"):
+            continue
+
+        path = os.path.join(folder, filename)
+        bh = os.path.splitext(filename)[0]
+        Z = terrain_lookup.get(bh)
+        if Z is None:
+            print(f"⚠️ Terrain level not found for {bh}, skipping Enaks.")
+            continue
+
+        try:
+            wb = load_workbook(path, data_only=True)
+            if sheet_name not in wb.sheetnames:
+                print(f"⚠️ Sheet '{sheet_name}' not in {filename}, skipping.")
+                continue
+            ws = wb[sheet_name]
+
+            strengths = [c[0].value for c in ws[x_range_strength]]
+            deforms   = [c[0].value for c in ws[x_range_deform]]
+            depths    = [c[0].value for c in ws[y_range_depth]]
+
+            strength_vals, deform_vals, dep_vals, elev_vals = [], [], [], []
+            for cu, df, d in zip(strengths, deforms, depths):
+                if d is None:
+                    continue
+                dep_vals.append(d)
+                elev_vals.append(Z - d)
+                if cu is not None:
+                    strength_vals.append(float(cu))
+                if df is not None:
+                    deform_vals.append(float(df))
+
+            enaks_series[bh] = {
+                "Z": Z,
+                "strength": strength_vals,
+                "deform": deform_vals,
+                "depths": dep_vals,
+                "elevs": elev_vals,
+            }
+        except Exception as e:
+            print(f"❌ Error reading {filename}: {e}")
+
+    return enaks_series
+
