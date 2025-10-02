@@ -600,85 +600,83 @@ def _pick_range(ranges: dict, candidates, label: str) -> str:
 # --- KONUS ---------------------------------------------------------------
 def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
     """
-    Build a dict per borehole with undisturbed (cu), remoulded (cur), 
-    and sensitivity S=cu/cur, keeping only valid rows.
-
-    Returns:
-      {
-        "BH01": {
-          "Z": <terrain level>,
-          "depths": [...],
-          "elevs": [...],
-          "undist": [...],
-          "remould": [...],
-          "sensitivity": [...]
-        }, ...
+    Returns dict of borehole data:
+    {
+      BH: {
+        "undist": [...],
+        "remould": [...],
+        "sensitivity": [...],
+        "depths": [...],
+        "elevs": [...],
+        "Z": terrain_level
       }
+    }
     """
-    und_rng = _pick_range(ranges, ["konus_undist","x_range_konus_undist","undist"], "konus undisturbed range")
-    rem_rng = _pick_range(ranges, ["konus_remould","x_range_konus_remould","remould"], "konus remoulded range")
-    dep_rng = _pick_range(ranges, ["konus_depth","y_range_depth","depth"], "konus depth range")
+    from openpyxl import load_workbook
+    import os, math
 
-    excel_ext = (".xlsx", ".xls", ".xlsm")
-    out = {}
+    excel_extensions = (".xlsx", ".xls", ".xlsm")
+    konus_series = {}
 
-    for fname in os.listdir(folder):
-        if not fname.endswith(excel_ext) or fname.startswith("~$"):
+    for filename in os.listdir(folder):
+        if not filename.endswith(excel_extensions) or filename.startswith("~$"):
             continue
-        path = os.path.join(folder, fname)
-        bh = os.path.splitext(fname)[0]
+        bh = os.path.splitext(filename)[0]
         Z = terrain_lookup.get(bh)
         if Z is None:
-            print(f"⚠️ Terrain level not found for {bh}, skipping Konus.")
+            print(f"⚠️ No terrain level for {bh}, skipping")
             continue
 
+        path = os.path.join(folder, filename)
         try:
             wb = load_workbook(path, data_only=True)
             if sheet_name not in wb.sheetnames:
-                print(f"⚠️ Sheet '{sheet_name}' not in {fname}, skipping.")
+                print(f"⚠️ Sheet {sheet_name} not in {filename}, skipping")
                 continue
             ws = wb[sheet_name]
 
-            und_raw = [c[0].value for c in ws[und_rng]]
-            rem_raw = [c[0].value for c in ws[rem_rng]]
-            dep_raw = [c[0].value for c in ws[dep_rng]]
+            und = [cell[0].value for cell in ws[ranges["konus_undist"]]]
+            rem = [cell[0].value for cell in ws[ranges["konus_remould"]]]
+            dep = [cell[0].value for cell in ws[ranges["depth"]]]
 
-            depths, elevs, undist, remould, sens = [], [], [], [], []
-            for cu, cur, d in zip(und_raw, rem_raw, dep_raw):
-                if d is None or cu is None or cur in (None, 0):
+            undist, remould, sens, depths, elevs = [], [], [], [], []
+            for u, r, d in zip(und, rem, dep):
+                if d is None: 
                     continue
-                try:
-                    cu_val = float(cu)
-                    cur_val = float(cur)
-                    s_val = cu_val / cur_val
-                    if not math.isfinite(s_val) or s_val <= 0:
-                        continue
-                except Exception:
-                    continue
-
                 depths.append(d)
                 elevs.append(Z - d)
-                undist.append(cu_val)
-                remould.append(cur_val)
-                sens.append(s_val)
+                if u is not None:
+                    undist.append(u)
+                else:
+                    undist.append(None)
+                if r is not None:
+                    remould.append(r)
+                else:
+                    remould.append(None)
 
-            if not sens:
-                print(f"⚠️ No valid sensitivity data for {bh}, skipping.")
-                continue
+                # sensitivity = cu / cur
+                if u is not None and r is not None and r != 0:
+                    s = float(u) / float(r)
+                    if math.isfinite(s) and s > 0:
+                        sens.append(s)
+                    else:
+                        sens.append(None)
+                else:
+                    sens.append(None)
 
-            out[bh] = {
+            konus_series[bh] = {
+                "undist": [v for v in undist if v is not None],
+                "remould": [v for v in remould if v is not None],
+                "sensitivity": [v for v in sens if v is not None],
+                "depths": [d for d,v in zip(depths, sens) if v is not None],
+                "elevs": [e for e,v in zip(elevs, sens) if v is not None],
                 "Z": Z,
-                "depths": depths,
-                "elevs": elevs,
-                "undist": undist,
-                "remould": remould,
-                "sensitivity": sens,
             }
+
         except Exception as e:
-            print(f"❌ Error reading {fname}: {e}")
+            print(f"❌ Error reading {filename}: {e}")
 
-    return out
-
+    return konus_series
 # --- ENAKS ---------------------------------------------------------------
 def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
     """
