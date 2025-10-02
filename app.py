@@ -70,7 +70,7 @@ if st.button("Generate Reports"):
                 with open(os.path.join(enaks_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
 
             # --- Build unified series ---
-            konus_series = build_konus_series(kuons_dir, sheet_name, ranges.konus_undist, ranges.konus_remould, ranges.depth, terrain_lookup)
+            konus_series = build_konus_series(konus_dir, sheet_name, ranges.konus_undist, ranges.konus_remould, ranges.depth, terrain_lookup)
             enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges.enaks_strength, ranges.enaks_deform, ranges.depth, terrain_lookup)
 
             # --- Generate figures with preview + download ---
