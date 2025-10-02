@@ -1,3 +1,8 @@
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from matplotlib import patches
+import itertools
+
 def export_curfc_pdf(
     data_series,
     outfile_pdf,
