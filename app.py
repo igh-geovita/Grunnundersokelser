@@ -5,7 +5,8 @@ import pandas as pd
 from plot_pdf import (export_sensitivity_pdf,
     export_curfc_pdf,
     export_cu_enaks_konus_pdf,
-    export_enaks_deformation_pdf)
+    export_enaks_deformation_pdf
+    export_wc_pdf)
 from build_data import build_konus_series, build_enaks_series, build_water_content_series, export_combined_table
 
 # ✅ Always use repo logo
@@ -85,6 +86,8 @@ ranges = {
     "depth": 'F6:F30',
     "enaks_strength": 'G6:G30',
     "enaks_deform": 'H6:H30',
+    "wc_depth": 'g12:g41',
+    "wc": 'h12:h41'
 }
 
 if st.button("Generate Reports"):
@@ -109,9 +112,16 @@ if st.button("Generate Reports"):
             for uf in enaks_files:
                 with open(os.path.join(enaks_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
 
+            # Save wc files
+            wc_dir = os.path.join(tmpdir, "wc"); os.makedirs(wc_dir, exist_ok=True)
+            for uf in wc_files:
+                with open(os.path.join(wc_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
+
             # --- Build unified series ---
             konus_series = build_konus_series(konus_dir, sheet_name, ranges, terrain_lookup)
             enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges, terrain_lookup)
+            wc_series = build_wc_seris(wc_dir, sheet_name,ranges, terrain_lookup)
+            
             #Export series to excel
             export_combined_table(konus_series, enaks_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
             st.subheader("Data Table")
@@ -179,3 +189,17 @@ if st.button("Generate Reports"):
             st.image(out_c5_png, caption="Preview C5 – Enaks Deformation", use_column_width=True)
             with open(out_c5_pdf, "rb") as f:
                 st.download_button("Download C5 – Enaks Deformation PDF", f, file_name="C5_enaks_deformation.pdf")
+
+            # C1 – water content
+            out_c1_pdf = os.path.join(tmpdir, "C1_water content.pdf")
+            out_c1_png = os.path.join(tmpdir, "C1_water content.png")
+            export_wc_pdf(wc_series, 
+                                         outfile_pdf=out_c1_pdf, 
+                                         outfile_png=out_c1_png,
+                                         logo_path=logo_path, 
+                                         title_info={**title_info_common,"figur_nr":fig_wc}
+            )
+            st.subheader("C1 – Water content")
+            st.image(out_c5_png, caption="Preview C1 – Water content", use_column_width=True)
+            with open(out_c1_pdf, "rb") as f:
+                st.download_button("Download C1 – Watercontent PDF", f, file_name="C1_water content.pdf")
