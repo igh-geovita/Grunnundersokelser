@@ -22,12 +22,15 @@ dato       = st.sidebar.date_input("Dato")
 tegn       = st.sidebar.text_input("Tegnet av", "IGH")
 kontr      = st.sidebar.text_input("Kontrollert av", "JOG")
 godkj      = st.sidebar.text_input("Godkjent av", "AGR")
-fig_st    =st.sidebar.text_input("figurnr sensitivitetsplott", "C2")
-fig_curfc    =st.sidebar.text_input("figurnr plott omrørt skjærstyrke (konus)", "C3")
-fig_cuc    =st.sidebar.text_input("figurnr plott direkte skjærstyrke (konus/enaks)", "C4")
-fig_ef    =st.sidebar.text_input("figurnr plott bruddtøyning enaks", "C5")
 
-title_info = {
+st.sidebar.subheader("Figurnummer")
+fig_st    = st.sidebar.text_input("Sensitivitetsplott", "C2")
+fig_curfc = st.sidebar.text_input("Omrørt skjærstyrke (konus)", "C3")
+fig_cuc   = st.sidebar.text_input("Direkte skjærstyrke (konus/enaks)", "C4")
+fig_ef    = st.sidebar.text_input("Bruddtøyning enaks", "C5")
+
+
+title_info_common = {
     "rapport_nr": rapport_nr,
     "dato": str(dato),
     "tegn": tegn,
@@ -91,7 +94,7 @@ if st.button("Generate Reports"):
                 outfile_pdf=out_c2_pdf,
                 outfile_png=out_c2_png,
                 logo_path=logo_path,
-                title_info={**title_info, "figur_nr": "C2"},
+                title_info={**title_info_common, "figur_nr": fig_st},
             )
             st.image(out_c2_png, caption="Preview C2 – Sensitivity", use_column_width=True)
             with open(out_c2_pdf, "rb") as f:
@@ -105,7 +108,7 @@ if st.button("Generate Reports"):
                 outfile_pdf=out_c3_pdf,
                 outfile_png=out_c3_png,
                 logo_path=logo_path,
-                title_info={**title_info, "figur_nr": "C3"},
+                title_info={**title_info_common, "figur_nr": fig_curfc},
             )
             st.subheader("C3 – Remoulded Shear Strength")
             st.image(out_c3_png, caption="Preview C3 – Remoulded", use_column_width=True)
@@ -120,7 +123,7 @@ if st.button("Generate Reports"):
                                       outfile_pdf=out_c4_pdf, 
                                       outfile_png=out_c4_png,
                                       logo_path=logo_path, 
-                                      title_info={**title_info,"figur_nr":"C4"}
+                                      title_info={**title_info_common,"figur_nr":fig_cuc}
             )
             st.subheader("C4 – Konus + Enaks")
             st.image(out_c4_png, caption="Preview C4 – Konus + Enaks", use_column_width=True)
@@ -134,7 +137,7 @@ if st.button("Generate Reports"):
                                          outfile_pdf=out_c5_pdf, 
                                          outfile_png=out_c5_png,
                                          logo_path=logo_path, 
-                                         title_info={**title_info,"figur_nr":"C5"}
+                                         title_info={**title_info_common,"figur_nr":fig_ef}
             )
             st.subheader("C5 – Enaks Deformation")
             st.image(out_c5_png, caption="Preview C5 – Enaks Deformation", use_column_width=True)
