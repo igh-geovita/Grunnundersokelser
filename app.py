@@ -1,175 +1,101 @@
-import os
-import tempfile
 import streamlit as st
+import tempfile
+import os
 import pandas as pd
-from openpyxl import load_workbook
-
-# Import your export functions
-from plot_pdf import export_curfc_pdf, export_cu_enaks_konus_pdf
-
-# -----------------------
-# Logo path (baked in from repo)
-# -----------------------
-LOGO_PATH = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
-
-# -----------------------
-# Streamlit UI
-# -----------------------
-st.title("Plot av udrenert skjærstyrke")
-
-# --- Inputs ---
-konus_files = st.file_uploader(
-    "Last opp Konus-filer (Excel)", type=["xlsx", "xls", "xlsm"], accept_multiple_files=True
+from plot_pdf import (
+    build_konus_sensitivity_series,
+    export_sensitivity_pdf,
+    export_curfc_pdf,
+    export_cu_enaks_konus_pdf,
+    build_enaks_deformation_series,
+    export_enaks_deformation_pdf,
+    read_series
 )
 
-enaks_files = st.file_uploader(
-    "Last opp Enaks-filer (Excel)", type=["xlsx", "xls", "xlsm"], accept_multiple_files=True
-)
+# ✅ Always use repo logo
+logo_path = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
 
-terrain_file = st.file_uploader("Last opp terrengnivåer (Excel)", type=["xlsx"])
+st.title("Geovita – Konus & Enaks Report Generator")
 
-sheet_name = st.text_input("Sheet-navn (kommaseparert hvis flere)", "Sheet 001")
+# Sidebar metadata
+st.sidebar.header("Report Metadata")
+rapport_nr = st.sidebar.text_input("Rapport Nr.", "SMS-20-A-11341")
+dato       = st.sidebar.date_input("Dato")
+tegn       = st.sidebar.text_input("Tegn", "IGH")
+kontr      = st.sidebar.text_input("Kontr", "JOG")
+godkj      = st.sidebar.text_input("Godkj", "AGR")
 
-# Ranges (fixed by type)
-depth_range = "F6:F30"
-konus_omrort_range = "M6:M30"
-konus_uforstyrret_range = "L6:L30"
-enaks_range = "G6:G30"
+title_info = {
+    "rapport_nr": rapport_nr,
+    "dato": str(dato),
+    "tegn": tegn,
+    "kontr": kontr,
+    "godkj": godkj,
+}
 
-# Title block
-st.subheader("Tittelblokk")
-rapport_nr = st.text_input("Rapport Nr.", "XX")
-dato       = st.date_input("Dato")
-tegn       = st.text_input("Tegn", "IGH")
-kontr      = st.text_input("Kontr", "JOG")
-godkj      = st.text_input("Godkj", "AGR")
-figur_nr   = st.text_input("Figur Nr.", "C3")
+# Upload files
+terrain_file = st.file_uploader("Upload terrain_levels.xlsx", type=["xlsx"])
+konus_files = st.file_uploader("Upload Konus Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
+enaks_files = st.file_uploader("Upload Enaks Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 
-# -----------------------
-# Helper: extract series
-# -----------------------
-def extract_series(files, sheet_names, x_range, y_range, terrain_lookup):
-    series = []
-    for file in files:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
-            tmp.write(file.getbuffer())
-            tmp_path = tmp.name
-        try:
-            wb = load_workbook(tmp_path, data_only=True)
-            borehole_name = None
-            all_x, all_y = [], []
-            for sname in sheet_names:
-                if sname not in wb.sheetnames:
-                    continue
-                ws = wb[sname]
-                if borehole_name is None:
-                    borehole_name = ws["B6"].value
-                x_vals = [cell[0].value for cell in ws[x_range]]
-                y_vals = [cell[0].value for cell in ws[y_range]]
-                pts = [(x, d) for x, d in zip(x_vals, y_vals) if x is not None and d is not None]
-                if pts:
-                    xs, ys = zip(*pts)
-                    all_x.extend(xs)
-                    all_y.extend(ys)
-            if not borehole_name or not all_x:
-                continue
-            bh_key = str(borehole_name).strip().lower()
-            Z = terrain_lookup.get(bh_key)
-            if Z is None:
-                continue
-            elevs = [Z - d for d in all_y]
-            # Sort by depth
-            sorted_pts = sorted(zip(all_x, all_y, elevs), key=lambda t: t[1])
-            xs, ys, elevs_sorted = zip(*sorted_pts)
-            series.append((str(borehole_name), xs, ys, elevs_sorted, Z))
-        except Exception as e:
-            st.error(f"Feil ved lesing av {file.name}: {e}")
-        finally:
-            os.unlink(tmp_path)
-    return series
+# Input ranges
+sheet_name = "Sheet 001"
+x_range_konus_undist  = 'L6:L30'
+x_range_konus_remould = 'M6:M30'
+y_range_depth         = 'F6:F30'
+x_range_enaks_strength = 'G6:G30'
+y_range_enaks_depth    = 'F6:F30'
+x_range_enaks_deform   = 'H6:H30'
 
-# -----------------------
-# Process when ready
-# -----------------------
-if st.button("Generer rapport"):
-    if not konus_files or not terrain_file:
-        st.error("Du må laste opp minst én Konus-fil og terrengnivåfil")
+if st.button("Generate Reports"):
+    if not terrain_file or not konus_files or not enaks_files:
+        st.error("Please upload terrain, Konus, and Enaks files.")
     else:
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Terrain
-            terrain_path = os.path.join(tmpdir, terrain_file.name)
-            with open(terrain_path, "wb") as f:
-                f.write(terrain_file.getbuffer())
-            terrain_df = pd.read_excel(terrain_path, usecols="A:B")
-            terrain_df.columns = ["BH", "Z"]
-            terrain_lookup = {
-                str(bh).strip().lower(): z
-                for bh, z in zip(terrain_df["BH"], terrain_df["Z"])
-                if pd.notna(bh) and pd.notna(z)
-            }
+            # Save terrain
+            terrain_path = os.path.join(tmpdir, "terrain.xlsx")
+            with open(terrain_path, "wb") as f: f.write(terrain_file.getbuffer())
 
-            sheet_names = [s.strip() for s in sheet_name.split(",") if s.strip()]
+            # Save Konus files
+            konus_dir = os.path.join(tmpdir, "konus"); os.makedirs(konus_dir, exist_ok=True)
+            for uf in konus_files:
+                with open(os.path.join(konus_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
 
-            # --- Konus Omrørt (alone) ---
-            series_konus_omrort = extract_series(konus_files, sheet_names,
-                                                 konus_omrort_range, depth_range, terrain_lookup)
+            # Save Enaks files
+            enaks_dir = os.path.join(tmpdir, "enaks"); os.makedirs(enaks_dir, exist_ok=True)
+            for uf in enaks_files:
+                with open(os.path.join(enaks_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
 
-            output_pdf_omrort = os.path.join(tmpdir, "konus_omrort.pdf")
-            output_png_omrort = os.path.join(tmpdir, "konus_omrort.png")
+            # --- Run exports (call your functions from plot_pdf) ---
 
-            export_curfc_pdf(
-                series_konus_omrort,
-                outfile_pdf=output_pdf_omrort,
-                outfile_png=output_png_omrort,
-                logo_path=LOGO_PATH,
-                title_info={
-                    "rapport_nr": rapport_nr,
-                    "dato": str(dato),
-                    "tegn": tegn,
-                    "kontr": kontr,
-                    "godkj": godkj,
-                    "figur_nr": figur_nr,
-                },
-            )
+            # C2 – Sensitivity
+            series_sens = build_konus_sensitivity_series(konus_dir, x_range_konus_undist, x_range_konus_remould, y_range_depth)
+            out_c2_pdf = os.path.join(tmpdir, "C2_sensitivity.pdf")
+            export_sensitivity_pdf(series_sens, outfile_pdf=out_c2_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C2"})
+            with open(out_c2_pdf, "rb") as f:
+                st.download_button("Download C2 – Sensitivity", f, file_name="C2_sensitivity.pdf")
 
-            # --- Konus Uforstyrret + Enaks ---
-            series_konus_uforstyrret = extract_series(konus_files, sheet_names,
-                                                      konus_uforstyrret_range, depth_range, terrain_lookup)
+            # C3 – Remoulded shear strength
+            series_remould = []
+            read_series(konus_dir, x_range_konus_remould, y_range_depth, series_remould)
+            out_c3_pdf = os.path.join(tmpdir, "C3_curfc.pdf")
+            export_curfc_pdf(series_remould, outfile_pdf=out_c3_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C3"})
+            with open(out_c3_pdf, "rb") as f:
+                st.download_button("Download C3 – Remoulded Strength", f, file_name="C3_curfc.pdf")
+
+            # C4 – Konus (undisturbed) + Enaks
+            series_konus = []
+            read_series(konus_dir, x_range_konus_undist, y_range_depth, series_konus)
             series_enaks = []
-            if enaks_files:
-                series_enaks = extract_series(enaks_files, sheet_names,
-                                              enaks_range, depth_range, terrain_lookup)
+            read_series(enaks_dir, x_range_enaks_strength, y_range_enaks_depth, series_enaks)
+            out_c4_pdf = os.path.join(tmpdir, "C4_cu_enaks_konus.pdf")
+            export_cu_enaks_konus_pdf(series_konus, series_enaks, outfile_pdf=out_c4_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C4"})
+            with open(out_c4_pdf, "rb") as f:
+                st.download_button("Download C4 – Konus + Enaks", f, file_name="C4_cu_enaks_konus.pdf")
 
-            output_pdf_uforstyrret = os.path.join(tmpdir, "konus_uforstyrret_enaks.pdf")
-            output_png_uforstyrret = os.path.join(tmpdir, "konus_uforstyrret_enaks.png")
-
-            export_cu_enaks_konus_pdf(
-                series_konus_uforstyrret,
-                series_enaks,
-                outfile_pdf=output_pdf_uforstyrret,
-                outfile_png=output_png_uforstyrret,
-                logo_path=LOGO_PATH,
-                title_info={
-                    "rapport_nr": rapport_nr,
-                    "dato": str(dato),
-                    "tegn": tegn,
-                    "kontr": kontr,
-                    "godkj": godkj,
-                    "figur_nr": figur_nr,
-                },
-            )
-
-            # --- Show previews and download links ---
-            st.subheader("Konus Omrørt (alene)")
-            st.image(output_png_omrort, caption="Forhåndsvisning Konus Omrørt", use_column_width=True)
-            with open(output_pdf_omrort, "rb") as f:
-                st.download_button("Last ned PDF (Konus Omrørt)", f, file_name="konus_omrort.pdf")
-            with open(output_png_omrort, "rb") as f:
-                st.download_button("Last ned PNG (Konus Omrørt)", f, file_name="konus_omrort.png")
-
-            st.subheader("Konus Uforstyrret + Enaks")
-            st.image(output_png_uforstyrret, caption="Forhåndsvisning Konus Uforstyrret + Enaks", use_column_width=True)
-            with open(output_pdf_uforstyrret, "rb") as f:
-                st.download_button("Last ned PDF (Konus Uforstyrret + Enaks)", f, file_name="konus_uforstyrret_enaks.pdf")
-            with open(output_png_uforstyrret, "rb") as f:
-                st.download_button("Last ned PNG (Konus Uforstyrret + Enaks)", f, file_name="konus_uforstyrret_enaks.png")
+            # C5 – Enaks deformation
+            series_deform = build_enaks_deformation_series(enaks_dir, x_range_enaks_deform, y_range_enaks_depth)
+            out_c5_pdf = os.path.join(tmpdir, "C5_enaks_deformation.pdf")
+            export_enaks_deformation_pdf(series_deform, outfile_pdf=out_c5_pdf, logo_path=logo_path, title_info={**title_info,"figur_nr":"C5"})
+            with open(out_c5_pdf, "rb") as f:
+                st.download_button("Download C5 – Enaks Deformation", f, file_name="C5_enaks_deformation.pdf")
