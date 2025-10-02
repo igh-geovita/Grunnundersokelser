@@ -26,7 +26,7 @@ data_files = st.file_uploader(
 
 terrain_file = st.file_uploader("Upload Terrain Levels (Excel)", type=["xlsx"])
 
-sheet_name = st.text_input("Sheet name", "Sheet 001")
+sheet_name = st.text_input("Sheet names (comma-separated if multiple)", "Sheet 001, Sheet 002")
 x_range = st.text_input("X range in excel (Omrørt skjærstyrke)", "M6:M30")
 y_range = st.text_input("Y range in excel (Dybde)", "F6:F30")
 
@@ -72,37 +72,56 @@ if st.button("Generate Report"):
 
                 try:
                     wb = load_workbook(file_path, data_only=True)
-                    if sheet_name not in wb.sheetnames:
-                        st.warning(f"Sheet {sheet_name} not in {file.name}, skipping")
-                        continue
-                    ws = wb[sheet_name]
 
-                    # --- Borehole name from B6 ---
-                    borehole_name_raw = ws["B6"].value
+                    # Allow multiple sheet names (comma-separated)
+                    sheet_names = [s.strip() for s in sheet_name.split(",") if s.strip()]
+
+                    borehole_name_raw = None
+                    all_x, all_y = [], []
+
+                    for sname in sheet_names:
+                        if sname not in wb.sheetnames:
+                            st.warning(f"Sheet {sname} not in {file.name}, skipping")
+                            continue
+                        ws = wb[sname]
+
+                        # --- Borehole name from B6 (take from the first sheet that has it) ---
+                        if borehole_name_raw is None:
+                            borehole_name_raw = ws["B6"].value
+
+                        x_vals = [cell[0].value for cell in ws[x_range]]
+                        y_vals = [cell[0].value for cell in ws[y_range]]
+
+                        pts = [(x, d) for x, d in zip(x_vals, y_vals) if x is not None and d is not None]
+                        if not pts:
+                            st.warning(f"No valid points in {sname} of {file.name}, skipping")
+                            continue
+
+                        x_f, y_f = zip(*pts)
+                        all_x.extend(x_f)
+                        all_y.extend(y_f)
+
+                    # --- Skip if no borehole name or data found ---
                     if not borehole_name_raw:
-                        st.warning(f"No borehole name in B6 of {file.name}, skipping")
+                        st.warning(f"No borehole name found in B6 of {file.name}, skipping")
                         continue
 
+                    if not all_x or not all_y:
+                        st.warning(f"No valid data in any selected sheets of {file.name}, skipping")
+                        continue
+
+                    # Normalize for terrain lookup
                     borehole_key = str(borehole_name_raw).strip().lower()
                     terrain_level = terrain_lookup.get(borehole_key)
                     if terrain_level is None:
                         st.warning(f"No terrain level found for borehole '{borehole_name_raw}', skipping")
                         continue
 
-                    # --- Extract series ---
-                    x_vals = [cell[0].value for cell in ws[x_range]]
-                    y_vals = [cell[0].value for cell in ws[y_range]]
+                    # Elevation
+                    elev = [terrain_level - d for d in all_y]
 
-                    pts = [(x, d) for x, d in zip(x_vals, y_vals) if x is not None and d is not None]
-                    if not pts:
-                        st.warning(f"No valid points in {file.name}, skipping")
-                        continue
-
-                    x_f, y_f = zip(*pts)
-                    elev = [terrain_level - d for d in y_f]
-
-                    # keep raw borehole name for labeling
-                    data_series.append((str(borehole_name_raw), x_f, y_f, elev, terrain_level))
+                    # Save data series
+                    data_series.append((str(borehole_name_raw), all_x, all_y, elev, terrain_level))
 
                 except Exception as e:
                     st.error(f"Error reading {file.name}: {e}")
