@@ -36,23 +36,6 @@ terrain_file = st.file_uploader("Upload terrain_levels.xlsx", type=["xlsx"])
 konus_files = st.file_uploader("Upload Konus Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 enaks_files = st.file_uploader("Upload Enaks Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 
-st.sidebar.header("Rapport metadata")
-
-rapport_nr = st.sidebar.text_input("Rapport Nr.", "SMS-20-A-11341")
-dato       = st.sidebar.date_input("Dato").strftime("%Y-%m-%d")
-tegn       = st.sidebar.text_input("Tegn", "IGH")
-kontr      = st.sidebar.text_input("Kontrollert av", "JOG")
-godkj      = st.sidebar.text_input("Godkjent av", "AGR")
-
-# Store in dict
-title_info = {
-    "rapport_nr": rapport_nr,
-    "dato": dato,
-    "tegn": tegn,
-    "kontr": kontr,
-    "godkj": godkj,
-}
-
 # Input ranges
 sheet_name = "Sheet 001"
 ranges = {
