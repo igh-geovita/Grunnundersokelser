@@ -153,3 +153,46 @@ def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
             print(f"❌ Error reading {fname}: {e}")
 
     return out
+
+def export_combined_table(konus_series, enaks_series, outfile_xlsx):
+    """
+    Exports one Excel sheet with:
+    Borhull | Dybde | Kote | Omrørt skjærstyrke | 
+    Uforstyrret skjærstyrke konus | Sensitivitet | Skjærstyrke enaks
+    """
+    rows = []
+
+    # Konus
+    for bh, data in konus_series.items():
+        for d, e, cu, cur, s in zip(
+            data["depths"], data["elevs"], data["undist"], data["remould"], data["sensitivity"]
+        ):
+            rows.append({
+                "Borhull": bh,
+                "Dybde": d,
+                "Kote": e,
+                "Omrørt skjærstyrke": cur,
+                "Uforstyrret skjærstyrke konus": cu,
+                "Sensitivitet": s,
+                "Skjærstyrke enaks": np.nan,
+            })
+
+    # Enaks
+    for bh, data in enaks_series.items():
+        for d, e, cu in zip(data["depths"], data["elevs"], data["strength"]):
+            rows.append({
+                "Borhull": bh,
+                "Dybde": d,
+                "Kote": e,
+                "Omrørt skjærstyrke": np.nan,
+                "Uforstyrret skjærstyrke konus": np.nan,
+                "Sensitivitet": np.nan,
+                "Skjærstyrke enaks": cu,
+            })
+
+    df = pd.DataFrame(rows)
+    df.sort_values(by=["Borhull", "Dybde"], inplace=True)
+    df.to_excel(outfile_xlsx, index=False)
+
+    print(f"✅ Exported combined table: {outfile_xlsx}")
+    return df
