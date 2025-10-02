@@ -40,9 +40,19 @@ title_info_common = {
 
 # Upload files
 terrain_file = st.file_uploader("Upload terrain level file", 
-                                type=["xlsx"])
-konus_files = st.file_uploader("Upload Konus Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
-enaks_files = st.file_uploader("Upload Enaks Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
+                                type=["xlsx"],
+                               help="Excel file with columns 'BH' and 'Z'. 👉 "
+                                "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/terrain_example.xlsx)")
+konus_files = st.file_uploader("Upload Konus Excel files", 
+                               type=["xlsx","xlsm"], 
+                               accept_multiple_files=True
+                              help ="Konus files with undisturbed/remoulded shear strength. 👉 "
+         "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_konus.xlsm)" )
+enaks_files = st.file_uploader("Upload Enaks Excel files", 
+                               type=["xlsx","xlsm"], 
+                               accept_multiple_files=True
+                              help = help="Enaks files with strength and deformation at break. 👉 "
+         "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_Enaks.xlsm)")
 
 # Input ranges
 sheet_name = "Sheet 001"
