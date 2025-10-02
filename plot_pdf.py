@@ -386,7 +386,7 @@ def export_sensitivity_pdf(
     # Legend
     handles, labels = [], []
     seen = set()
-    for bh, *_ , Z in series_sens:
+    for bh, *_ , Z in konus_series:
         lab = f"{bh}, {Z:.1f} m"
         if lab in seen: continue
         seen.add(lab)
@@ -488,7 +488,7 @@ def export_enaks_deformation_pdf(
     # Legend
     handles, labels = [], []
     seen = set()
-    for bh, *_ , Z in series_def:
+    for bh, *_ , Z in enak_series:
         lab = f"{bh}, {Z:.1f} m"
         if lab in seen: continue
         seen.add(lab)
