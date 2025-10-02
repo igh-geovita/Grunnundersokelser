@@ -39,7 +39,8 @@ title_info_common = {
 }
 
 # Upload files
-terrain_file = st.file_uploader("Upload terrain_levels.xlsx", type=["xlsx"])
+terrain_file = st.file_uploader("Upload terrain level file", 
+                                type=["xlsx"])
 konus_files = st.file_uploader("Upload Konus Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 enaks_files = st.file_uploader("Upload Enaks Excel files", type=["xlsx","xlsm"], accept_multiple_files=True)
 
