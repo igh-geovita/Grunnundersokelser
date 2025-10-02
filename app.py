@@ -84,8 +84,8 @@ if st.button("Generate Reports"):
             df = pd.read_excel(os.path.join(tmpdir, "grunnundersokelser.xlsx"))
             st.dataframe(df)
 
-            # with open(os.path.join(tmpdir, "grunnundersokelser.xlsx"), "rb") as f:
-            #     st.download_button("Download Excel", f, file_name="grunnundersokelser.xlsx")
+            with open(os.path.join(tmpdir, "grunnundersokelser.xlsx"), "rb") as f:
+                st.download_button("Download Excel", f, file_name="grunnundersokelser.xlsx")
 
             # --- Generate figures with preview + download ---
             # C2 – Sensitivity
