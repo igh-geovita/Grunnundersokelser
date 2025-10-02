@@ -176,8 +176,20 @@ def export_curfc_pdf(
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
     # Legend
+    legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
+    legend_h = tb_height * 0.60
+    legend_x0 = inner_left + inner_w * 0.02
+    legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
+
     handles, labels = left_ax.get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper left", ncol=4, fontsize=8, frameon=True)
+    if handles:
+        fig.legend(
+            handles, labels,
+            loc='upper left',
+            bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
+            bbox_transform=fig.transFigure,
+            ncol=4, frameon=True, fontsize=8,
+            columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: fig.savefig(outfile_png, dpi=300)
@@ -271,8 +283,23 @@ def export_cu_enaks_konus_pdf(
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
     # Legend
-    handles, labels = left_ax.get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper left", ncol=4, fontsize=8, frameon=True)
+    bh_to_Z = {}
+    for bh, *_ , Z in series_konus: bh_to_Z[bh] = Z
+    for bh, *_ , Z in series_enaks: bh_to_Z[bh] = Z
+    handles, labels = [], []
+    for bh in sorted(bh_to_Z.keys()):
+        handles.append(plt.Line2D([], [], linestyle='', marker='s', markersize=8, color=bh_color[bh]))
+        labels.append(f"{bh}, {bh_to_Z[bh]:.1f} m")
+
+    legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
+    legend_h = tb_height * 0.60
+    legend_x0 = inner_left + inner_w * 0.02
+    legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
+    if handles:
+        fig.legend(handles, labels, loc='upper left',
+                   bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
+                   bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: fig.savefig(outfile_png, dpi=300)
@@ -357,11 +384,24 @@ def export_sensitivity_pdf(
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
     # Legend
-    handles, labels = left_ax.get_legend_handles_labels()
+    handles, labels = [], []
+    seen = set()
+    for bh, *_ , Z in series_sens:
+        lab = f"{bh}, {Z:.1f} m"
+        if lab in seen: continue
+        seen.add(lab)
+        handles.append(plt.Line2D([], [], linestyle='', marker='s', markersize=8, color=bh_color.get(bh, 'k')))
+        labels.append(lab)
+
+    legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
+    legend_h = tb_height * 0.60
+    legend_x0 = inner_left + inner_w * 0.02
+    legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
     if handles:
-        fig.legend(handles, labels, loc='upper left', ncol=4,
-                   frameon=True, fontsize=8, columnspacing=0.8,
-                   handletextpad=0.6, borderaxespad=0.6)
+        fig.legend(handles, labels, loc='upper left',
+                   bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
+                   bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: fig.savefig(outfile_png, dpi=300)
@@ -446,11 +486,24 @@ def export_enaks_deformation_pdf(
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
     # Legend
-    handles, labels = left_ax.get_legend_handles_labels()
+    handles, labels = [], []
+    seen = set()
+    for bh, *_ , Z in series_def:
+        lab = f"{bh}, {Z:.1f} m"
+        if lab in seen: continue
+        seen.add(lab)
+        handles.append(plt.Line2D([], [], linestyle='', marker='s', markersize=8, color=bh_color.get(bh, 'k')))
+        labels.append(lab)
+
+    legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
+    legend_h = tb_height * 0.60
+    legend_x0 = inner_left + inner_w * 0.02
+    legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
     if handles:
-        fig.legend(handles, labels, loc="upper left", ncol=4,
-                   frameon=True, fontsize=8, columnspacing=0.8,
-                   handletextpad=0.6, borderaxespad=0.6)
+        fig.legend(handles, labels, loc='upper left',
+                   bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
+                   bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: 
