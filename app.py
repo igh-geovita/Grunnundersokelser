@@ -6,8 +6,7 @@ from plot_pdf import (
     export_sensitivity_pdf,
     export_curfc_pdf,
     export_cu_enaks_konus_pdf,
-    export_enaks_deformation_pdf
-)
+    export_enaks_deformation_pdf)
 from build_data import build_konus_series, build_enaks_series, build_water_content_series, export_combined_table
 
 # ✅ Always use repo logo
