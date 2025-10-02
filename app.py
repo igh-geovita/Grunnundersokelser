@@ -2,8 +2,7 @@ import streamlit as st
 import tempfile
 import os
 import pandas as pd
-from plot_pdf import (
-    export_sensitivity_pdf,
+from plot_pdf import (export_sensitivity_pdf,
     export_curfc_pdf,
     export_cu_enaks_konus_pdf,
     export_enaks_deformation_pdf)
