@@ -404,7 +404,7 @@ def export_sensitivity_pdf(
     right_ax = fig.add_axes([inner_left + inner_w*0.54, charts_bottom, inner_w*0.38, charts_height])
 
     # Colour map per borehole (union of those series)
-    all_bhs = sorted(set(konus_series.keys()) | set(enaks_series.keys()))
+    all_bhs = sorted(set(konus_series.keys()))
     colors = plt.get_cmap("tab20").resampled(max(1, len(all_bhs))).colors
     bh_color = {bh: colors[i % len(colors)] for i, bh in enumerate(all_bhs)}
 
