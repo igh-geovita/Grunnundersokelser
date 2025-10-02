@@ -193,13 +193,13 @@ if st.button("Generate Reports"):
             # C1 – water content
             out_c1_pdf = os.path.join(tmpdir, "C1_water content.pdf")
             out_c1_png = os.path.join(tmpdir, "C1_water content.png")
-            export_wc_pdf(wc_series, 
-                                         outfile_pdf=out_c1_pdf, 
-                                         outfile_png=out_c1_png,
-                                         logo_path=logo_path, 
-                                         title_info={**title_info_common,"figur_nr":fig_wc}
+            export_wc_pdf(wc_series,
+                          outfile_pdf=out_c1_pdf,
+                          outfile_png=out_c1_png,
+                          logo_path=logo_path, 
+                          title_info={**title_info_common,"figur_nr":fig_wc}
             )
             st.subheader("C1 – Water content")
-            st.image(out_c5_png, caption="Preview C1 – Water content", use_column_width=True)
+            st.image(out_c1_png, caption="Preview C1 – Water content", use_column_width=True)
             with open(out_c1_pdf, "rb") as f:
                 st.download_button("Download C1 – Watercontent PDF", f, file_name="C1_water content.pdf")
