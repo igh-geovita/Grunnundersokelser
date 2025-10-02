@@ -15,7 +15,7 @@ from plot_pdf import export_curfc_pdf   # or paste export_curfc_pdf here
 # -----------------------
 # Streamlit UI
 # -----------------------
-st.title("Geovita Plot Generator")
+st.title("Plot av omrørt skjærstyrke")
 
 # --- Inputs ---
 data_files = st.file_uploader(
@@ -26,8 +26,8 @@ terrain_file = st.file_uploader("Upload Terrain Levels (Excel)", type=["xlsx"])
 logo_file = st.file_uploader("Upload Logo (PNG)", type=["png"])
 
 sheet_name = st.text_input("Sheet name", "Sheet 001")
-x_range = st.text_input("X range (Excel notation)", "M6:M30")
-y_range = st.text_input("Y range (Excel notation)", "F6:F30")
+x_range = st.text_input("X range in excel (Omrørt skjærstyrke)", "M6:M30")
+y_range = st.text_input("Y range in excel (Dybde)", "F6:F30")
 
 # Title block
 st.subheader("Title block info")
@@ -54,7 +54,13 @@ if st.button("Generate Report"):
                 f.write(terrain_file.getbuffer())
             terrain_df = pd.read_excel(terrain_path, usecols="A:B")
             terrain_df.columns = ["BH", "Z"]
-            terrain_lookup = dict(zip(terrain_df["BH"], terrain_df["Z"]))
+
+            # normalize terrain lookup keys
+            terrain_lookup = {
+                str(bh).strip().lower(): z
+                for bh, z in zip(terrain_df["BH"], terrain_df["Z"])
+                if pd.notna(bh) and pd.notna(z)
+            }
 
             # Save logo (optional)
             logo_path = None
@@ -70,13 +76,6 @@ if st.button("Generate Report"):
                 with open(file_path, "wb") as f:
                     f.write(file.getbuffer())
 
-                workbook_name = os.path.splitext(file.name)[0]
-                terrain_level = terrain_lookup.get(workbook_name)
-
-                if terrain_level is None:
-                    st.warning(f"No terrain level found for {workbook_name}, skipping")
-                    continue
-
                 try:
                     wb = load_workbook(file_path, data_only=True)
                     if sheet_name not in wb.sheetnames:
@@ -84,6 +83,19 @@ if st.button("Generate Report"):
                         continue
                     ws = wb[sheet_name]
 
+                    # --- Borehole name from B6 ---
+                    borehole_name_raw = ws["B6"].value
+                    if not borehole_name_raw:
+                        st.warning(f"No borehole name in B6 of {file.name}, skipping")
+                        continue
+
+                    borehole_key = str(borehole_name_raw).strip().lower()
+                    terrain_level = terrain_lookup.get(borehole_key)
+                    if terrain_level is None:
+                        st.warning(f"No terrain level found for borehole '{borehole_name_raw}', skipping")
+                        continue
+
+                    # --- Extract series ---
                     x_vals = [cell[0].value for cell in ws[x_range]]
                     y_vals = [cell[0].value for cell in ws[y_range]]
 
@@ -94,7 +106,10 @@ if st.button("Generate Report"):
 
                     x_f, y_f = zip(*pts)
                     elev = [terrain_level - d for d in y_f]
-                    data_series.append((workbook_name, x_f, y_f, elev, terrain_level))
+
+                    # keep raw borehole name for labeling
+                    data_series.append((str(borehole_name_raw), x_f, y_f, elev, terrain_level))
+
                 except Exception as e:
                     st.error(f"Error reading {file.name}: {e}")
 
@@ -127,3 +142,4 @@ if st.button("Generate Report"):
                 st.download_button("Download PDF", f, file_name="curfc_report.pdf")
             with open(output_png, "rb") as f:
                 st.download_button("Download PNG", f, file_name="curfc_report.png")
+
