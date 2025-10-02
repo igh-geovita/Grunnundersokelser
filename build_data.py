@@ -28,8 +28,6 @@ def build_konus_series(folder, sheet_name, ranges, terrain_lookup):
       }
     }
     """
-    from openpyxl import load_workbook
-    import os, math
 
     excel_extensions = (".xlsx", ".xls", ".xlsm")
     konus_series = {}
