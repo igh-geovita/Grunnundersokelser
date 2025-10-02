@@ -71,9 +71,14 @@ if st.button("Generate Reports"):
             # --- Build unified series ---
             konus_series = build_konus_series(konus_dir, sheet_name, ranges, terrain_lookup)
             enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges, terrain_lookup)
+            #Export series to excel
+            df = export_combined_table(konus_series, enaks_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
+            st.subheader("Data Table")
+            st.dataframe(df)
+            with open(os.path.join(tmpdir, "grunnundersokelser.xlsx"), "rb") as f:
+                st.download_button("Download Excel", f, file_name="grunnundersokelser.xlsx")
 
             # --- Generate figures with preview + download ---
-
             # C2 – Sensitivity
             out_c2_pdf = os.path.join(tmpdir, "C2_sensitivity.pdf")
             out_c2_png = os.path.join(tmpdir, "C2_sensitivity.png")
