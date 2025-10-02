@@ -51,7 +51,7 @@ konus_files = st.file_uploader("Upload Konus Excel files",
 enaks_files = st.file_uploader("Upload Enaks Excel files", 
                                type=["xlsx","xlsm"], 
                                accept_multiple_files=True,
-                              help = help="Enaks files with strength and deformation at break. 👉 "
+                              help = "Enaks files with strength and deformation at break. 👉 "
          "[Download example](https://raw.githubusercontent.com/USERNAME/REPO/main/examples/06-376_Enaks.xlsm)")
 
 # Input ranges
