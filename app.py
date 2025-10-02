@@ -3,13 +3,15 @@ import tempfile
 import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from matplotlib import patches
-import itertools
 
-# Import your export function (copied from your script)
-from plot_pdf import export_curfc_pdf   # or paste export_curfc_pdf here
+# Import your export function
+from plot_pdf import export_curfc_pdf
+
+
+# -----------------------
+# Logo path (baked in from repo)
+# -----------------------
+LOGO_PATH = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
 
 
 # -----------------------
@@ -23,7 +25,6 @@ data_files = st.file_uploader(
 )
 
 terrain_file = st.file_uploader("Upload Terrain Levels (Excel)", type=["xlsx"])
-logo_file = st.file_uploader("Upload Logo (PNG)", type=["png"])
 
 sheet_name = st.text_input("Sheet name", "Sheet 001")
 x_range = st.text_input("X range in excel (Omrørt skjærstyrke)", "M6:M30")
@@ -61,13 +62,6 @@ if st.button("Generate Report"):
                 for bh, z in zip(terrain_df["BH"], terrain_df["Z"])
                 if pd.notna(bh) and pd.notna(z)
             }
-
-            # Save logo (optional)
-            logo_path = None
-            if logo_file:
-                logo_path = os.path.join(tmpdir, logo_file.name)
-                with open(logo_path, "wb") as f:
-                    f.write(logo_file.getbuffer())
 
             # Collect data series
             data_series = []
@@ -121,7 +115,7 @@ if st.button("Generate Report"):
                 data_series,
                 outfile_pdf=output_pdf,
                 outfile_png=output_png,
-                logo_path=logo_path,
+                logo_path=LOGO_PATH,   # baked-in logo
                 title_info={
                     "rapport_nr": rapport_nr,
                     "dato": str(dato),
@@ -142,4 +136,3 @@ if st.button("Generate Report"):
                 st.download_button("Download PDF", f, file_name="curfc_report.pdf")
             with open(output_png, "rb") as f:
                 st.download_button("Download PNG", f, file_name="curfc_report.png")
-
