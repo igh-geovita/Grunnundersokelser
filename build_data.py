@@ -159,10 +159,9 @@ def build_water_content_series(folder, sheet_name, ranges, terrain_lookup):
     Returns dict of borehole data:
     {
       BH: {
-        "water content": [...],
         "depths": [...],
         "elevs": [...],
-        "Z": terrain_level
+        "water content": [...],
       }
     }
     """
@@ -199,10 +198,9 @@ def build_water_content_series(folder, sheet_name, ranges, terrain_lookup):
                 wc.append(float(v) if df is not None else None)
                 
             wc_series[bh] = {
-                "water content": wc
                 "depths": depths,
                 "elevs": elevs,
-                "Z": Z,
+                "water content": wc
             }
 
         except Exception as e:
