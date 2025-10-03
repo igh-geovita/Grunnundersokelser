@@ -222,18 +222,35 @@ def export_combined_table(konus_series, enaks_series, outfile_xlsx):
     rows = []
     all_bhs = set(konus_series.keys()) | set(enaks_series.keys()) | set(wc_series.keys())
 
+    def export_combined_table(konus_series, enaks_series, wc_series, outfile_xlsx):
+    """
+    Export combined borehole data to Excel.
+
+    Columns:
+      Borhull | Dybde | Kote | Omrørt skjærstyrke | Uforstyrret skjærstyrke konus |
+      Sensitivitet | Skjærstyrke enaks | Bruddtøyning | Vanninnhold (%)
+    """
+
+    rows = []
+    # Merge all boreholes across the 3 series
+    all_bhs = set(konus_series.keys()) | set(enaks_series.keys()) | set(wc_series.keys())
+
     for bh in sorted(all_bhs):
         kdata = konus_series.get(bh, {})
         edata = enaks_series.get(bh, {})
         wdata = wc_series.get(bh, {})
 
-        depths = kdata.get("depths", []) 
-                or edata.get("depths", [])
-                or wdata.get("depths", [])
-
-        elevs  = kdata.get("elevs", []) 
-                or edata.get("elevs", [])
-                or wdata.get("elevs", [])
+        # Build a "master depth list" for this BH
+        depths = (
+            kdata.get("depths", []) 
+            or edata.get("depths", []) 
+            or wdata.get("depths", [])
+        )
+        elevs = (
+            kdata.get("elevs", []) 
+            or edata.get("elevs", []) 
+            or wdata.get("elevs", [])
+        )
 
         for i, d in enumerate(depths):
             row = {
