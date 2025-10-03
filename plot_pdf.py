@@ -208,7 +208,8 @@ def export_curfc_pdf(
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
                    bbox_transform=fig.transFigure,
                    ncol=4, frameon=True, fontsize=8,
-                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
+                    title = "Borhull")
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png:
@@ -352,7 +353,7 @@ def export_cu_enaks_konus_pdf(
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
                    bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
                    columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
-                   title = "Sammenstilling udrenert skjærstyrke (enaks og konus)")
+                   title = "Borhull")
         if lg.get_title():
            lg.get_title().set_fontsize(9)
            lg.get_title().set_weight('bold')
@@ -484,7 +485,8 @@ def export_sensitivity_pdf(
         fig.legend(handles, labels, loc='upper left',
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
                    bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
-                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
+                   title = "Borhull")
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: 
@@ -595,7 +597,8 @@ def export_enaks_deformation_pdf(
         fig.legend(handles, labels, loc='upper left',
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
                    bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
-                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
+                   title = "Borhull")
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png: 
@@ -713,7 +716,8 @@ def export_wc_pdf(
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
                    bbox_transform=fig.transFigure,
                    ncol=4, frameon=True, fontsize=8,
-                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
+                   title = "Borhull")
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png:
