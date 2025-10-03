@@ -220,7 +220,7 @@ def export_combined_table(konus_series, enaks_series, outfile_xlsx):
     """
 
     rows = []
-    all_bhs = set(konus_series.keys()) | set(enaks_series.keys() | set(wc_series.keys())
+    all_bhs = set(konus_series.keys()) | set(enaks_series.keys()) | set(wc_series.keys())
 
     for bh in sorted(all_bhs):
         kdata = konus_series.get(bh, {})
