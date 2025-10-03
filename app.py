@@ -86,8 +86,8 @@ ranges = {
     "depth": 'F6:F30',
     "enaks_strength": 'G6:G30',
     "enaks_deform": 'H6:H30',
-    "wc_depth": 'g12:g41',
-    "wc": 'h12:h41'
+    "wc_depth": 'G12:G41',
+    "wc": 'H12:41'
 }
 
 if st.button("Generate Reports"):
