@@ -159,6 +159,7 @@ def build_wc_series(folder, sheet_name, ranges, terrain_lookup):
     Returns dict of borehole data:
     {
       BH: {
+        "Z": <terrain level>,
         "depths": [...],
         "elevs": [...],
         "water content": [...],
@@ -198,6 +199,7 @@ def build_wc_series(folder, sheet_name, ranges, terrain_lookup):
                 wc.append(float(v) if v is not None else None)
                 
             wc_series[bh] = {
+                "Z": Z,
                 "depths": depths,
                 "elevs": elevs,
                 "water content": wc
