@@ -353,9 +353,9 @@ def export_cu_enaks_konus_pdf(
                    bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
                    columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
                    title = "Sammenstilling udrenert skjærstyrke (enaks og konus)")
-       if lg.get_title():
-        lg.get_title().set_fontsize(9)
-        lg.get_title().set_weight('bold')
+      if lg.get_title():
+         lg.get_title().set_fontsize(9)
+         lg.get_title().set_weight('bold')
 
     # --- Add marker explanation (● Enaks, ▲ Konus) ---
       key_handles = [
