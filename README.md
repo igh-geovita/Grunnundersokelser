@@ -6,5 +6,5 @@ Foreløpig tar den inn:
 
 I tillegg lages et excelark med all dataen i plottene, hvis man ønsker å lage egne plott.
 
-Inputdataen er labfiler direkte fra NGI sin lab. Man kan ikke ha data fra flere borpunkt i samme fil, da borhullsnavnet hentes fra celle B6(Første rad) i inputfilene for konus/enaks, B12 for vanninnhold. 
-I tillegg til Labdataen må man gi inn en tabell med kotehøyde for borhullene.
+Inputdataen er labfiler direkte fra NGI sin lab. Man kan ikke ha data fra flere borpunkt i samme fil, da borhullsnavnet hentes fra celle B6 (Første rad) i inputfilene for konus/enaks, B12 for vanninnhold. 
+I tillegg til labdataen må man gi inn en tabell med terrengnivå i borhullene.
