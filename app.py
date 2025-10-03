@@ -138,73 +138,76 @@ if st.button("Generate Reports"):
 
             # --- Generate figures with preview + download ---
             # C2 – Sensitivity
-            out_c2_pdf = os.path.join(tmpdir, "C2_sensitivity.pdf")
-            out_c2_png = os.path.join(tmpdir, "C2_sensitivity.png")
-            export_sensitivity_pdf(
-                konus_series,
-                outfile_pdf=out_c2_pdf,
-                outfile_png=out_c2_png,
-                logo_path=logo_path,
-                title_info={**title_info_common, "figur_nr": fig_st},
-            )
-            st.image(out_c2_png, caption="Preview C2 – Sensitivity", use_column_width=True)
-            with open(out_c2_pdf, "rb") as f:
-                st.download_button("Download C2 – Sensitivity PDF", f, file_name="C2_sensitivity.pdf")
-
-            # C3 – Remoulded shear strength
-            out_c3_pdf = os.path.join(tmpdir, "C3_curfc.pdf")
-            out_c3_png = os.path.join(tmpdir, "C3_curfc.png")
-            export_curfc_pdf(
-                konus_series,
-                outfile_pdf=out_c3_pdf,
-                outfile_png=out_c3_png,
-                logo_path=logo_path,
-                title_info={**title_info_common, "figur_nr": fig_curfc},
-            )
-            st.subheader("C3 – Remoulded Shear Strength")
-            st.image(out_c3_png, caption="Preview C3 – Remoulded", use_column_width=True)
-            with open(out_c3_pdf, "rb") as f:
-                st.download_button("Download C3 – Remoulded Strength PDF", f, file_name="C3_curfc.pdf")
-
-            # C4 – Konus (undisturbed) + Enaks
-            out_c4_pdf = os.path.join(tmpdir, "C4_cu_enaks_konus.pdf")
-            out_c4_png = os.path.join(tmpdir, "C4_cu_enaks_konus.png")
-            export_cu_enaks_konus_pdf(konus_series, 
-                                      enaks_series, 
-                                      outfile_pdf=out_c4_pdf, 
-                                      outfile_png=out_c4_png,
-                                      logo_path=logo_path, 
-                                      title_info={**title_info_common,"figur_nr":fig_cuc}
-            )
-            st.subheader("C4 – Konus + Enaks")
-            st.image(out_c4_png, caption="Preview C4 – Konus + Enaks", use_column_width=True)
-            with open(out_c4_pdf, "rb") as f:
-                st.download_button("Download C4 – Konus + Enaks PDF", f, file_name="C4_cu_enaks_konus.pdf")
+            if konus_series:
+                out_c2_pdf = os.path.join(tmpdir, "C2_sensitivity.pdf")
+                out_c2_png = os.path.join(tmpdir, "C2_sensitivity.png")
+                export_sensitivity_pdf(
+                    konus_series,
+                    outfile_pdf=out_c2_pdf,
+                    outfile_png=out_c2_png,
+                    logo_path=logo_path,
+                    title_info={**title_info_common, "figur_nr": fig_st},
+                )
+                st.image(out_c2_png, caption="Preview C2 – Sensitivity", use_column_width=True)
+                with open(out_c2_pdf, "rb") as f:
+                    st.download_button("Download C2 – Sensitivity PDF", f, file_name="C2_sensitivity.pdf")
+    
+                # C3 – Remoulded shear strength
+                out_c3_pdf = os.path.join(tmpdir, "C3_curfc.pdf")
+                out_c3_png = os.path.join(tmpdir, "C3_curfc.png")
+                export_curfc_pdf(
+                    konus_series,
+                    outfile_pdf=out_c3_pdf,
+                    outfile_png=out_c3_png,
+                    logo_path=logo_path,
+                    title_info={**title_info_common, "figur_nr": fig_curfc},
+                )
+                st.subheader("C3 – Remoulded Shear Strength")
+                st.image(out_c3_png, caption="Preview C3 – Remoulded", use_column_width=True)
+                with open(out_c3_pdf, "rb") as f:
+                    st.download_button("Download C3 – Remoulded Strength PDF", f, file_name="C3_curfc.pdf")
+    
+                # C4 – Konus (undisturbed) + Enaks
+                out_c4_pdf = os.path.join(tmpdir, "C4_cu_enaks_konus.pdf")
+                out_c4_png = os.path.join(tmpdir, "C4_cu_enaks_konus.png")
+                export_cu_enaks_konus_pdf(konus_series, 
+                                          enaks_series, 
+                                          outfile_pdf=out_c4_pdf, 
+                                          outfile_png=out_c4_png,
+                                          logo_path=logo_path, 
+                                          title_info={**title_info_common,"figur_nr":fig_cuc}
+                )
+                st.subheader("C4 – Konus + Enaks")
+                st.image(out_c4_png, caption="Preview C4 – Konus + Enaks", use_column_width=True)
+                with open(out_c4_pdf, "rb") as f:
+                    st.download_button("Download C4 – Konus + Enaks PDF", f, file_name="C4_cu_enaks_konus.pdf")
 
             # C5 – Enaks deformation
-            out_c5_pdf = os.path.join(tmpdir, "C5_enaks_deformation.pdf")
-            out_c5_png = os.path.join(tmpdir, "C5_enaks_deformation.png")
-            export_enaks_deformation_pdf(enaks_series, 
-                                         outfile_pdf=out_c5_pdf, 
-                                         outfile_png=out_c5_png,
-                                         logo_path=logo_path, 
-                                         title_info={**title_info_common,"figur_nr":fig_ef}
-            )
-            st.subheader("C5 – Enaks Deformation")
-            st.image(out_c5_png, caption="Preview C5 – Enaks Deformation", use_column_width=True)
-            with open(out_c5_pdf, "rb") as f:
-                st.download_button("Download C5 – Enaks Deformation PDF", f, file_name="C5_enaks_deformation.pdf")
+            if enaks_series:
+                out_c5_pdf = os.path.join(tmpdir, "C5_enaks_deformation.pdf")
+                out_c5_png = os.path.join(tmpdir, "C5_enaks_deformation.png")
+                export_enaks_deformation_pdf(enaks_series, 
+                                             outfile_pdf=out_c5_pdf, 
+                                             outfile_png=out_c5_png,
+                                             logo_path=logo_path, 
+                                             title_info={**title_info_common,"figur_nr":fig_ef}
+                )
+                st.subheader("C5 – Enaks Deformation")
+                st.image(out_c5_png, caption="Preview C5 – Enaks Deformation", use_column_width=True)
+                with open(out_c5_pdf, "rb") as f:
+                    st.download_button("Download C5 – Enaks Deformation PDF", f, file_name="C5_enaks_deformation.pdf")
 
             # C1 – water content
-            out_c1_pdf = os.path.join(tmpdir, "C1_water content.pdf")
-            out_c1_png = os.path.join(tmpdir, "C1_water content.png")
-            export_wc_pdf(wc_series,
-                          outfile_pdf=out_c1_pdf,
-                          outfile_png=out_c1_png,
-                          logo_path=logo_path, 
-                          title_info={**title_info_common,"figur_nr":fig_wc}
-            )
-            st.subheader("C1 – Water content")
-            st.image(out_c1_png, caption="Preview C1 – Water content", use_column_width=True)
-            with open(out_c1_pdf, "rb") as f:
-                st.download_button("Download C1 – Watercontent PDF", f, file_name="C1_water content.pdf")
+            if wc_series:
+                out_c1_pdf = os.path.join(tmpdir, "C1_water content.pdf")
+                out_c1_png = os.path.join(tmpdir, "C1_water content.png")
+                export_wc_pdf(wc_series,
+                              outfile_pdf=out_c1_pdf,
+                              outfile_png=out_c1_png,
+                              logo_path=logo_path, 
+                              title_info={**title_info_common,"figur_nr":fig_wc}
+                )
+                st.subheader("C1 – Water content")
+                st.image(out_c1_png, caption="Preview C1 – Water content", use_column_width=True)
+                with open(out_c1_pdf, "rb") as f:
+                    st.download_button("Download C1 – Watercontent PDF", f, file_name="C1_water content.pdf")
