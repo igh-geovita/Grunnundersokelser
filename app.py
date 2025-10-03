@@ -7,7 +7,7 @@ from plot_pdf import (export_sensitivity_pdf,
     export_cu_enaks_konus_pdf,
     export_enaks_deformation_pdf,
     export_wc_pdf)
-from build_data import build_konus_series, build_enaks_series, build_water_content_series, export_combined_table
+from build_data import build_konus_series, build_enaks_series, build_wc_series, export_combined_table
 
 # ✅ Always use repo logo
 logo_path = os.path.join(os.path.dirname(__file__), "geovitalogo.png")
