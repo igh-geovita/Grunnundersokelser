@@ -103,25 +103,29 @@ if st.button("Generate Reports"):
             terrain_df.columns = ["BH", "Z"]
             terrain_lookup = dict(zip(terrain_df["BH"], terrain_df["Z"]))
 
+             # --- Initialize series dicts ---
+            konus_series, enaks_series, wc_series = {}, {}, {}
+
             # Save Konus files
-            konus_dir = os.path.join(tmpdir, "konus"); os.makedirs(konus_dir, exist_ok=True)
-            for uf in konus_files:
-                with open(os.path.join(konus_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
+            if konus_files:
+                konus_dir = os.path.join(tmpdir, "konus"); os.makedirs(konus_dir, exist_ok=True)
+                for uf in konus_files:
+                    with open(os.path.join(konus_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
+                konus_series = build_konus_series(konus_dir, sheet_name, ranges, terrain_lookup)
 
             # Save Enaks files
-            enaks_dir = os.path.join(tmpdir, "enaks"); os.makedirs(enaks_dir, exist_ok=True)
-            for uf in enaks_files:
-                with open(os.path.join(enaks_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
+            if enaks_files:
+                enaks_dir = os.path.join(tmpdir, "enaks"); os.makedirs(enaks_dir, exist_ok=True)
+                for uf in enaks_files:
+                    with open(os.path.join(enaks_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
+                enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges, terrain_lookup)
 
-            # Save wc files
-            wc_dir = os.path.join(tmpdir, "wc"); os.makedirs(wc_dir, exist_ok=True)
-            for uf in wc_files:
-                with open(os.path.join(wc_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
-
-            # --- Build unified series ---
-            konus_series = build_konus_series(konus_dir, sheet_name, ranges, terrain_lookup)
-            enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges, terrain_lookup)
-            wc_series = build_wc_series(wc_dir, sheet_name,ranges, terrain_lookup)
+            # Save WC files
+            if wc_files:
+                wc_dir = os.path.join(tmpdir, "wc"); os.makedirs(wc_dir, exist_ok=True)
+                for uf in wc_files:
+                    with open(os.path.join(wc_dir, uf.name), "wb") as f: f.write(uf.getbuffer())
+                wc_series = build_wc_series(wc_dir, sheet_name, ranges, terrain_lookup)
             
             #Export series to excel
             export_combined_table(konus_series, enaks_series, wc_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
