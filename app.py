@@ -92,8 +92,8 @@ ranges = {
 }
 
 if st.button("Generate Reports"):
-    if not terrain_file or not konus_files or not enaks_files:
-        st.error("Please upload terrain, Konus, and Enaks files.")
+    if not terrain_file:
+        st.error("Please upload at least the terrain file")
     else:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Save terrain
