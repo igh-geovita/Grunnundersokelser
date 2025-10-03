@@ -673,7 +673,7 @@ def export_wc_pdf(
         if not data.get("water content"):
             continue
         c, m = next(color_marker_combos)
-        left_ax.scatter(data["water content"], data["elevs"],
+        right_ax.scatter(data["water content"], data["elevs"],
                         color=c, marker=m, s=25,
                         label=f"{bh}, {data['Z']:.1f} m")
 
@@ -683,20 +683,7 @@ def export_wc_pdf(
     setup_xaxis(right_ax); add_box_spines(right_ax)
 
     # --- Legend ---
-    handles, labels = [], []
-    seen = set()
-    for bh, data in wc_series.items():
-        if not data.get("water content"):
-            continue
-        lab = f"{bh}, {data['Z']:.1f} m"
-        if lab in seen:
-            continue
-        seen.add(lab)
-        color = bh_color.get(bh, "tab:red")
-        handles.append(plt.Line2D([], [], linestyle='', marker='s',
-                                  markersize=8, color=color))
-        labels.append(lab)
-
+    handles, labels = left_ax.get_legend_handles_labels()
     legend_w = (tb_left - (inner_left + inner_w * 0.02)) - inner_w * 0.02
     legend_h = tb_height * 0.60
     legend_x0 = inner_left + inner_w * 0.02
