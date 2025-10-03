@@ -218,43 +218,50 @@ def export_combined_table(konus_series, enaks_series, wc_series, outfile_xlsx):
       Borhull | Dybde | Kote | Omrørt skjærstyrke | Uforstyrret skjærstyrke konus |
       Sensitivitet | Skjærstyrke enaks | Bruddtøyning | Vanninnhold (%)
     """
+    all_frames = []
 
-    rows = []
-    # Merge all boreholes across the 3 series
-    all_bhs = set(konus_series.keys()) | set(enaks_series.keys()) | set(wc_series.keys())
-
-    for bh in sorted(all_bhs):
+    for bh in sorted(set(konus_series) | set(enaks_series) | set(wc_series)):
+        # --- Konus ---
         kdata = konus_series.get(bh, {})
+        df_k = pd.DataFrame({
+            "Borhull": bh,
+            "Dybde": kdata.get("depths", []),
+            "Kote": kdata.get("elevs", []),
+            "Omrørt skjærstyrke": kdata.get("remould", []),
+            "Uforstyrret skjærstyrke konus": kdata.get("undist", []),
+            "Sensitivitet": kdata.get("sensitivity", []),
+        })
+
+        # --- Enaks ---
         edata = enaks_series.get(bh, {})
+        df_e = pd.DataFrame({
+            "Borhull": bh,
+            "Dybde": edata.get("depths", []),
+            "Kote": edata.get("elevs", []),
+            "Skjærstyrke enaks": edata.get("strength", []),
+            "Bruddtøyning": edata.get("deform", []),
+        })
+
+        # --- Water content ---
         wdata = wc_series.get(bh, {})
+        df_w = pd.DataFrame({
+            "Borhull": bh,
+            "Dybde": wdata.get("depths", []),
+            "Kote": wdata.get("elevs", []),
+            "Vanninnhold (%)": wdata.get("water content", []),
+        })
 
-        # Build a "master depth list" for this BH
-        depths = (
-            kdata.get("depths", []) 
-            or edata.get("depths", []) 
-            or wdata.get("depths", [])
-        )
-        elevs = (
-            kdata.get("elevs", []) 
-            or edata.get("elevs", []) 
-            or wdata.get("elevs", [])
-        )
+        # Merge all three for this borehole
+        df_merged = pd.merge(df_k, df_e, on=["Borhull","Dybde","Kote"], how="outer")
+        df_merged = pd.merge(df_merged, df_w, on=["Borhull","Dybde","Kote"], how="outer")
 
-        for i, d in enumerate(depths):
-            row = {
-                "Borhull": bh,
-                "Dybde": d,
-                "Kote": elevs[i] if i < len(elevs) else None,
-                "Omrørt skjærstyrke": kdata.get("remould", [None]*len(depths))[i] if i < len(kdata.get("remould", [])) else None,
-                "Uforstyrret skjærstyrke konus": kdata.get("undist", [None]*len(depths))[i] if i < len(kdata.get("undist", [])) else None,
-                "Sensitivitet": kdata.get("sensitivity", [None]*len(depths))[i] if i < len(kdata.get("sensitivity", [])) else None,
-                "Skjærstyrke enaks": edata.get("strength", [None]*len(depths))[i] if i < len(edata.get("strength", [])) else None,
-                "Bruddtøyning": edata.get("deform", [None]*len(depths))[i] if i < len(edata.get("deform", [])) else None,
-                "Vanninnhold (%)": wdata.get("water content", [None]*len(depths))[i] if i < len(wdata.get("water content", [])) else None,
-            }
-            rows.append(row)
+        all_frames.append(df_merged)
 
-    df = pd.DataFrame(rows)
-    df.to_excel(outfile_xlsx, index=False)
+    # Concatenate all boreholes
+    df_all = pd.concat(all_frames, ignore_index=True)
+    df_all.sort_values(by=["Borhull","Dybde"], inplace=True)
+
+    # Export
+    df_all.to_excel(outfile_xlsx, index=False)
     print(f"✅ Excel table exported: {outfile_xlsx}")
     return outfile_xlsx
