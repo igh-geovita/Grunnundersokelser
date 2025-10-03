@@ -2,3 +2,6 @@ streamlit
 pandas
 openpyxl
 matplotlib
+os
+tempfile
+itertools
