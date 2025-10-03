@@ -154,7 +154,7 @@ def build_enaks_series(folder, sheet_name, ranges, terrain_lookup):
 
     return out
 
-def build_water_content_series(folder, sheet_name, ranges, terrain_lookup):
+def build_wc_series(folder, sheet_name, ranges, terrain_lookup):
     """
     Returns dict of borehole data:
     {
