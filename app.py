@@ -124,7 +124,7 @@ if st.button("Generate Reports"):
             wc_series = build_wc_series(wc_dir, sheet_name,ranges, terrain_lookup)
             
             #Export series to excel
-            export_combined_table(konus_series, enaks_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
+            export_combined_table(konus_series, enaks_series, wc_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
             st.subheader("Data Table")
             df = pd.read_excel(os.path.join(tmpdir, "grunnundersokelser.xlsx"))
             st.dataframe(df)
