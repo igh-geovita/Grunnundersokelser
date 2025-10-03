@@ -348,10 +348,27 @@ def export_cu_enaks_konus_pdf(
     legend_y0 = (tb_bottom + tb_height/2) - (legend_h/2)
 
     if handles:
-        fig.legend(handles, labels, loc='upper left',
+        lg = fig.legend(handles, labels, loc='upper left',
                    bbox_to_anchor=(legend_x0, legend_y0, legend_w, legend_h),
                    bbox_transform=fig.transFigure, ncol=4, frameon=True, fontsize=8,
-                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6)
+                   columnspacing=0.8, handletextpad=0.6, borderaxespad=0.6,
+                   title = "Sammenstilling udrenert skjærstyrke (enaks og konus)")
+       if lg.get_title():
+        lg.get_title().set_fontsize(9)
+        lg.get_title().set_weight('bold')
+
+    # --- Add marker explanation (● Enaks, ▲ Konus) ---
+      key_handles = [
+          plt.Line2D([], [], linestyle='', marker='o', markersize=6, color='black', label='Enaks'),
+          plt.Line2D([], [], linestyle='', marker='^', markersize=6, color='black', label='Konus'),
+      ]
+
+      fig.legend(key_handles, [h.get_label() for h in key_handles],
+               loc='upper left',
+               bbox_to_anchor=(legend_x0, legend_y0 + legend_h + 0.01, 0.2, 0.03),
+               bbox_transform=fig.transFigure,
+               ncol=2, frameon=False, fontsize=8,
+               columnspacing=0.8, handletextpad=0.4)
 
     fig.savefig(outfile_pdf, format="pdf")
     if outfile_png:
