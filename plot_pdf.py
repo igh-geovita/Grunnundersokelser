@@ -8,6 +8,7 @@ import matplotlib.image as mpimg
 from matplotlib import patches
 import itertools
 from build_data import build_enaks_series, build_konus_series
+from matplotlib.ticker import MultipleLocator
 
 def draw_page_frame_and_title_block(fig, inner_left, inner_bottom, inner_w, inner_h,
                                     rapport_nr, figur_nr, tegn, kontr, godkj, dato,
