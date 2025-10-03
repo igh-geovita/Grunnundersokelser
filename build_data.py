@@ -210,19 +210,7 @@ def build_wc_series(folder, sheet_name, ranges, terrain_lookup):
 
     return wc_series
 
-def export_combined_table(konus_series, enaks_series, outfile_xlsx):
-    """
-    Export combined borehole data to Excel.
-
-    Columns:
-      Borhull | Dybde | Kote | Omrørt skjærstyrke | Uforstyrret skjærstyrke konus |
-      Sensitivitet | Skjærstyrke enaks | Bruddtøyning | Vanninnhold
-    """
-
-    rows = []
-    all_bhs = set(konus_series.keys()) | set(enaks_series.keys()) | set(wc_series.keys())
-
-    def export_combined_table(konus_series, enaks_series, wc_series, outfile_xlsx):
+def export_combined_table(konus_series, enaks_series, wc_series, outfile_xlsx):
     """
     Export combined borehole data to Excel.
 
