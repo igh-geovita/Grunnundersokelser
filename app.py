@@ -121,7 +121,7 @@ if st.button("Generate Reports"):
             # --- Build unified series ---
             konus_series = build_konus_series(konus_dir, sheet_name, ranges, terrain_lookup)
             enaks_series = build_enaks_series(enaks_dir, sheet_name, ranges, terrain_lookup)
-            wc_series = build_wc_seris(wc_dir, sheet_name,ranges, terrain_lookup)
+            wc_series = build_wc_series(wc_dir, sheet_name,ranges, terrain_lookup)
             
             #Export series to excel
             export_combined_table(konus_series, enaks_series, os.path.join(tmpdir, "grunnundersokelser.xlsx"))
