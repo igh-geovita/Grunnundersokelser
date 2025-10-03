@@ -186,8 +186,8 @@ def build_wc_series(folder, sheet_name, ranges, terrain_lookup):
                 continue
             ws = wb[sheet_name]
 
-            wc_raw = [cell[0].value for cell in ws[ranges["water content"]]]
-            dep_raw = [cell[0].value for cell in ws[ranges["depth"]]]
+            wc_raw = [cell[0].value for cell in ws[ranges["wc"]]]
+            dep_raw = [cell[0].value for cell in ws[ranges["wc_depth"]]]
 
             depths, elevs, wc = [], [], []
             for v,d in zip(wc_raw, dep_raw):
@@ -195,7 +195,7 @@ def build_wc_series(folder, sheet_name, ranges, terrain_lookup):
                     continue
                 depths.append(d)
                 elevs.append(Z - d)
-                wc.append(float(v) if df is not None else None)
+                wc.append(float(v) if v is not None else None)
                 
             wc_series[bh] = {
                 "depths": depths,
