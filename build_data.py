@@ -216,18 +216,24 @@ def export_combined_table(konus_series, enaks_series, outfile_xlsx):
 
     Columns:
       Borhull | Dybde | Kote | Omrørt skjærstyrke | Uforstyrret skjærstyrke konus |
-      Sensitivitet | Skjærstyrke enaks | Bruddtøyning
+      Sensitivitet | Skjærstyrke enaks | Bruddtøyning | Vanninnhold
     """
 
     rows = []
-    all_bhs = set(konus_series.keys()) | set(enaks_series.keys())
+    all_bhs = set(konus_series.keys()) | set(enaks_series.keys() | | set(wc_series.keys())
 
     for bh in sorted(all_bhs):
         kdata = konus_series.get(bh, {})
         edata = enaks_series.get(bh, {})
+        wdata = wc_series.get(bh, {})
 
-        depths = kdata.get("depths", []) or edata.get("depths", [])
-        elevs  = kdata.get("elevs", []) or edata.get("elevs", [])
+        depths = kdata.get("depths", []) 
+                or edata.get("depths", [])
+                or wdata.get("depths", [])
+
+        elevs  = kdata.get("elevs", []) 
+                or edata.get("elevs", [])
+                or wdata.get("elevs", [])
 
         for i, d in enumerate(depths):
             row = {
@@ -239,6 +245,7 @@ def export_combined_table(konus_series, enaks_series, outfile_xlsx):
                 "Sensitivitet": kdata.get("sensitivity", [None]*len(depths))[i] if i < len(kdata.get("sensitivity", [])) else None,
                 "Skjærstyrke enaks": edata.get("strength", [None]*len(depths))[i] if i < len(edata.get("strength", [])) else None,
                 "Bruddtøyning": edata.get("deform", [None]*len(depths))[i] if i < len(edata.get("deform", [])) else None,
+                "Vanninnhold (%)": wdata.get("water content", [None]*len(depths))[i] if i < len(wdata.get("water content", [])) else None,
             }
             rows.append(row)
 
